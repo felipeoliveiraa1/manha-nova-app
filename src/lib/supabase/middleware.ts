@@ -39,7 +39,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register");
+  // /nova-senha NAO eh auth route porque o user JA esta logado via recovery link
+  // e precisa ficar la pra definir a senha.
+  const isAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/esqueci-senha");
   // /biblia e /explorar sao conteudo publico (cacheaveis, sem auth na borda).
   const isProtected =
     pathname.startsWith("/home") ||

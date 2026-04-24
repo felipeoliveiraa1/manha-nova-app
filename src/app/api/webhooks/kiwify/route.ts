@@ -129,7 +129,7 @@ export async function POST(req: Request) {
         type: "magiclink",
         email,
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/home`,
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback?next=/home`,
         },
       });
       const loginUrl =

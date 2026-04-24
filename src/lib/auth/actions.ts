@@ -11,7 +11,7 @@ function hasSupabase() {
 }
 
 const NOT_CONFIGURED_MSG =
-  "Modo preview: Supabase ainda não está configurado. Preencha .env.local para habilitar login.";
+  "Modo preview: Supabase ainda não está configurado.";
 
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
@@ -34,36 +34,55 @@ export async function loginAction(formData: FormData) {
   redirect(next);
 }
 
-export async function registerAction(formData: FormData) {
+export async function esqueciSenhaAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-  const nome = String(formData.get("nome") ?? "").trim();
 
   if (!hasSupabase()) {
-    redirect(`/register?error=${encodeURIComponent(NOT_CONFIGURED_MSG)}`);
+    redirect(`/esqueci-senha?error=${encodeURIComponent(NOT_CONFIGURED_MSG)}`);
   }
-  if (!email || !password || !nome) {
-    redirect(`/register?error=${encodeURIComponent("Preencha todos os campos.")}`);
-  }
-  if (password.length < 8) {
+  if (!email) {
     redirect(
-      `/register?error=${encodeURIComponent(
-        "A senha precisa ter pelo menos 8 caracteres.",
-      )}`,
+      `/esqueci-senha?error=${encodeURIComponent("Informe seu email.")}`,
     );
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { nome } },
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${baseUrl}/auth/callback?next=/nova-senha`,
   });
+  // Sempre responde "enviado" (evita enumeration — não revela se email existe)
   if (error) {
-    redirect(`/register?error=${encodeURIComponent(error.message)}`);
+    console.warn("[esqueci-senha] erro:", error.message);
+  }
+  redirect("/esqueci-senha?sent=1");
+}
+
+export async function novaSenhaAction(formData: FormData) {
+  const senha = String(formData.get("senha") ?? "");
+  const confirmar = String(formData.get("confirmar") ?? "");
+
+  if (!hasSupabase()) {
+    redirect(`/nova-senha?error=${encodeURIComponent(NOT_CONFIGURED_MSG)}`);
+  }
+  if (senha.length < 8) {
+    redirect(
+      `/nova-senha?error=${encodeURIComponent("Mínimo de 8 caracteres.")}`,
+    );
+  }
+  if (senha !== confirmar) {
+    redirect(
+      `/nova-senha?error=${encodeURIComponent("As senhas não coincidem.")}`,
+    );
   }
 
-  redirect("/login?just_registered=1");
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: senha });
+  if (error) {
+    redirect(`/nova-senha?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect("/home?senha_definida=1");
 }
 
 export async function logoutAction() {
