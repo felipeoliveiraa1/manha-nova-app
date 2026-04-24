@@ -23,6 +23,7 @@ function checkoutUrl() {
 export async function sendWelcomeEmail(params: {
   email: string;
   nome: string;
+  senha: string;
   loginUrl: string;
 }) {
   const resend = getResend();
@@ -35,7 +36,12 @@ export async function sendWelcomeEmail(params: {
       from: fromAddress(),
       to: params.email,
       subject: "Seu acesso ao Manhã Nova está pronto",
-      react: WelcomeEmail({ nome: params.nome, loginUrl: params.loginUrl }),
+      react: WelcomeEmail({
+        nome: params.nome,
+        email: params.email,
+        senha: params.senha,
+        loginUrl: params.loginUrl,
+      }),
     });
     return { ok: true };
   } catch (e) {

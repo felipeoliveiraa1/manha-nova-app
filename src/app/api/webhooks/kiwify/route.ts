@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { generateReadablePassword } from "@/lib/auth/password";
 import {
   sendWelcomeEmail,
   sendSubscriptionCanceledEmail,
@@ -88,11 +89,13 @@ export async function POST(req: Request) {
   let userId = existingUser?.id ?? null;
   let isNewUser = false;
 
+  let senhaGerada: string | null = null;
   if (!userId && status === "active") {
+    senhaGerada = generateReadablePassword(10);
     const { data: created, error: createErr } =
       await admin.auth.admin.createUser({
         email,
-        password: crypto.randomBytes(16).toString("hex"),
+        password: senhaGerada,
         email_confirm: true,
         user_metadata: { nome, provisioned_via: "kiwify" },
       });
@@ -124,18 +127,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    if (isNewUser && status === "active") {
-      const { data: link } = await admin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback?next=/home`,
-        },
-      });
-      const loginUrl =
-        link?.properties?.action_link ??
-        `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`;
-      await sendWelcomeEmail({ email, nome, loginUrl });
+    if (isNewUser && status === "active" && senhaGerada) {
+      const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`;
+      await sendWelcomeEmail({ email, nome, senha: senhaGerada, loginUrl });
     } else if (status === "canceled" || status === "refunded") {
       await sendSubscriptionCanceledEmail({ email, nome });
     } else if (status === "past_due") {

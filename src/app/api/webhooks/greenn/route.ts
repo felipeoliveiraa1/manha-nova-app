@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { generateReadablePassword } from "@/lib/auth/password";
 import {
   sendWelcomeEmail,
   sendSubscriptionCanceledEmail,
@@ -85,14 +86,14 @@ export async function POST(req: Request) {
   );
   let userId = existingUser?.id ?? null;
   let isNewUser = false;
+  let senhaGerada: string | null = null;
 
   if (!userId && status === "active") {
-    // Cria user com senha aleatoria + email_confirm (nao dispara email do Supabase).
-    // O email de boas-vindas eh enviado via Resend abaixo (fluxo 100% Resend).
+    senhaGerada = generateReadablePassword(10);
     const { data: created, error: createErr } =
       await admin.auth.admin.createUser({
         email,
-        password: crypto.randomBytes(16).toString("hex"),
+        password: senhaGerada,
         email_confirm: true,
         user_metadata: { nome, provisioned_via: "greenn" },
       });
@@ -122,20 +123,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Todos os emails transacionais via Resend (best-effort, nao bloqueia resposta)
+  // Emails transacionais via Resend (best-effort, nao bloqueia resposta)
   try {
-    if (isNewUser && status === "active") {
-      const { data: link } = await admin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback?next=/home`,
-        },
-      });
-      const loginUrl =
-        link?.properties?.action_link ??
-        `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`;
-      await sendWelcomeEmail({ email, nome, loginUrl });
+    if (isNewUser && status === "active" && senhaGerada) {
+      const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`;
+      await sendWelcomeEmail({ email, nome, senha: senhaGerada, loginUrl });
     } else if (status === "canceled" || status === "refunded") {
       await sendSubscriptionCanceledEmail({ email, nome });
     } else if (status === "past_due") {

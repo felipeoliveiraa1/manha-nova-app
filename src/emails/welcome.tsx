@@ -6,7 +6,6 @@ import {
   Heading,
   Hr,
   Html,
-  Link,
   Preview,
   Section,
   Text,
@@ -14,9 +13,13 @@ import {
 
 export function WelcomeEmail({
   nome,
+  email,
+  senha,
   loginUrl,
 }: {
   nome: string;
+  email: string;
+  senha: string;
   loginUrl: string;
 }) {
   return (
@@ -30,26 +33,32 @@ export function WelcomeEmail({
           <Hr style={hr} />
           <Text style={greeting}>Oi, {nome}!</Text>
           <Text style={text}>
-            Seu acesso ao <strong>Manhã Nova</strong> está pronto. É só clicar
-            no botão abaixo pra entrar — não precisa senha na primeira vez.
+            Obrigado por assinar o <strong>Manhã Nova</strong>. Seu acesso já
+            está liberado. Abaixo estão seus dados de login:
           </Text>
+
+          <Section style={credBox}>
+            <Text style={credLabel}>Email</Text>
+            <Text style={credValue}>{email}</Text>
+            <Text style={credLabel}>Senha</Text>
+            <Text style={credValue}>{senha}</Text>
+          </Section>
+
           <Section style={{ textAlign: "center", margin: "32px 0" }}>
             <Button href={loginUrl} style={button}>
-              Acessar Manhã Nova
+              Entrar no Manhã Nova
             </Button>
           </Section>
+
           <Text style={textSmall}>
-            Se o botão não funcionar, copie este link:
-            <br />
-            <Link href={loginUrl} style={linkStyle}>
-              {loginUrl}
-            </Link>
+            Recomendamos trocar essa senha no primeiro acesso. Na tela de
+            login, clique em <strong>&ldquo;Esqueci minha senha&rdquo;</strong>{" "}
+            pra redefinir.
           </Text>
           <Hr style={hr} />
           <Text style={textSmall}>
-            Depois de entrar, você pode definir uma senha em{" "}
-            <strong>Configurações</strong>. Qualquer dúvida, responda esse
-            email.
+            Guarde este email em lugar seguro. Qualquer dúvida, é só responder
+            essa mensagem.
           </Text>
           <Text style={footer}>
             © {new Date().getFullYear()} Manhã Nova — todos os direitos
@@ -91,10 +100,7 @@ const sub: React.CSSProperties = {
   fontSize: "13px",
   margin: "4px 0 0 0",
 };
-const hr: React.CSSProperties = {
-  borderColor: "#2a2f3e",
-  margin: "24px 0",
-};
+const hr: React.CSSProperties = { borderColor: "#2a2f3e", margin: "24px 0" };
 const greeting: React.CSSProperties = {
   color: "#f5e5cc",
   fontSize: "16px",
@@ -113,6 +119,27 @@ const textSmall: React.CSSProperties = {
   lineHeight: "20px",
   margin: "8px 0",
 };
+const credBox: React.CSSProperties = {
+  backgroundColor: "#0f1117",
+  border: "1px solid #2a2f3e",
+  borderRadius: "8px",
+  padding: "20px 24px",
+  margin: "20px 0",
+};
+const credLabel: React.CSSProperties = {
+  color: "#8a8a8a",
+  fontSize: "11px",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.08em",
+  margin: "0 0 4px 0",
+};
+const credValue: React.CSSProperties = {
+  color: "#f5e5cc",
+  fontSize: "16px",
+  fontFamily: "Menlo, Monaco, monospace",
+  margin: "0 0 16px 0",
+  wordBreak: "break-all" as const,
+};
 const button: React.CSSProperties = {
   backgroundColor: "#e8b968",
   color: "#0f1117",
@@ -122,10 +149,6 @@ const button: React.CSSProperties = {
   fontWeight: 600,
   fontSize: "15px",
   display: "inline-block",
-};
-const linkStyle: React.CSSProperties = {
-  color: "#e8b968",
-  wordBreak: "break-all" as const,
 };
 const footer: React.CSSProperties = {
   color: "#5a5a5a",
