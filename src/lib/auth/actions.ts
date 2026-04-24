@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPasswordResetEmail } from "@/lib/email/send";
 import { redirect } from "next/navigation";
 
 function hasSupabase() {
@@ -46,15 +48,31 @@ export async function esqueciSenhaAction(formData: FormData) {
     );
   }
 
-  const supabase = await createClient();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${baseUrl}/auth/callback?next=/nova-senha`,
-  });
-  // Sempre responde "enviado" (evita enumeration — não revela se email existe)
-  if (error) {
-    console.warn("[esqueci-senha] erro:", error.message);
+  // Gera link de recovery via admin (nao dispara email do Supabase) + envia via Resend.
+  try {
+    const admin = createAdminClient();
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: {
+        redirectTo: `${baseUrl}/auth/callback?next=/nova-senha`,
+      },
+    });
+    if (error) {
+      console.warn("[esqueci-senha] generateLink erro:", error.message);
+    } else if (data?.properties?.action_link) {
+      await sendPasswordResetEmail({
+        email,
+        nome: email.split("@")[0],
+        resetUrl: data.properties.action_link,
+      });
+    }
+  } catch (e) {
+    console.error("[esqueci-senha] falha:", e);
   }
+
+  // Sempre responde "enviado" (evita enumeration — não revela se email existe)
   redirect("/esqueci-senha?sent=1");
 }
 

@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { WelcomeEmail } from "@/emails/welcome";
 import { SubscriptionCanceledEmail } from "@/emails/subscription-canceled";
 import { PaymentFailedEmail } from "@/emails/payment-failed";
+import { PasswordResetEmail } from "@/emails/password-reset";
 
 function getResend() {
   if (!process.env.RESEND_API_KEY) return null;
@@ -62,6 +63,33 @@ export async function sendSubscriptionCanceledEmail(params: {
     return { ok: true };
   } catch (e) {
     console.error("[email] canceled failed:", e);
+    return { ok: false, error: String(e) };
+  }
+}
+
+export async function sendPasswordResetEmail(params: {
+  email: string;
+  nome: string;
+  resetUrl: string;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not set, skipping password reset");
+    return { ok: false, skipped: true };
+  }
+  try {
+    await resend.emails.send({
+      from: fromAddress(),
+      to: params.email,
+      subject: "Redefina sua senha do Manhã Nova",
+      react: PasswordResetEmail({
+        nome: params.nome,
+        resetUrl: params.resetUrl,
+      }),
+    });
+    return { ok: true };
+  } catch (e) {
+    console.error("[email] password reset failed:", e);
     return { ok: false, error: String(e) };
   }
 }

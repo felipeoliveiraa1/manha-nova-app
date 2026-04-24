@@ -87,6 +87,8 @@ export async function POST(req: Request) {
   let isNewUser = false;
 
   if (!userId && status === "active") {
+    // Cria user com senha aleatoria + email_confirm (nao dispara email do Supabase).
+    // O email de boas-vindas eh enviado via Resend abaixo (fluxo 100% Resend).
     const { data: created, error: createErr } =
       await admin.auth.admin.createUser({
         email,
@@ -120,7 +122,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Dispara emails transacionais (best-effort, não bloqueia resposta)
+  // Todos os emails transacionais via Resend (best-effort, nao bloqueia resposta)
   try {
     if (isNewUser && status === "active") {
       const { data: link } = await admin.auth.admin.generateLink({
