@@ -8,10 +8,13 @@ import {
   sendPaymentFailedEmail,
 } from "@/lib/email/send";
 
-// Greenn webhook (Hotmart-like). HMAC SHA256 via header `X-Greenn-Signature`.
+// Greenn webhook. Valida via "Webhook Token" estatico (Greenn manda o token
+// no request — nao usa HMAC).
 
 type GreennPayload = {
   event?: string;
+  token?: string;
+  webhook_token?: string;
   data?: {
     buyer?: { email?: string; name?: string };
     product?: { id?: string; name?: string };
@@ -22,20 +25,38 @@ type GreennPayload = {
     };
     status?: string;
     transaction_id?: string;
+    token?: string;
   };
 };
 
-function verifySignature(body: string, signature: string | null) {
-  if (!process.env.GREENN_WEBHOOK_SECRET) return true;
-  if (!signature) return false;
-  const hmac = crypto
-    .createHmac("sha256", process.env.GREENN_WEBHOOK_SECRET)
-    .update(body)
-    .digest("hex");
-  return crypto.timingSafeEqual(
-    Buffer.from(hmac),
-    Buffer.from(signature),
-  );
+function timingSafeEq(a: string, b: string) {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
+
+function verifyToken(req: Request, body: string, payload: GreennPayload) {
+  const expected = process.env.GREENN_WEBHOOK_SECRET;
+  if (!expected) return true; // fail-open se nao configurado (dev)
+
+  const url = new URL(req.url);
+  const candidates: (string | null | undefined)[] = [
+    req.headers.get("authorization")?.replace(/^Bearer\s+/i, ""),
+    req.headers.get("x-webhook-token"),
+    req.headers.get("x-greenn-token"),
+    req.headers.get("x-greenn-signature"),
+    req.headers.get("token"),
+    url.searchParams.get("token"),
+    payload.token,
+    payload.webhook_token,
+    payload.data?.token,
+  ];
+
+  // Ultimo recurso: token aparece em algum lugar no body cru
+  if (body.includes(expected)) return true;
+
+  return candidates.some((c) => c && timingSafeEq(c, expected));
 }
 
 function statusFromGreenn(
@@ -51,16 +72,17 @@ function statusFromGreenn(
 
 export async function POST(req: Request) {
   const body = await req.text();
-  const signature = req.headers.get("x-greenn-signature");
-  if (!verifySignature(body, signature)) {
-    return NextResponse.json({ error: "invalid signature" }, { status: 401 });
-  }
 
   let payload: GreennPayload;
   try {
     payload = JSON.parse(body);
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
+  }
+
+  if (!verifyToken(req, body, payload)) {
+    console.warn("[greenn] token invalido");
+    return NextResponse.json({ error: "invalid token" }, { status: 401 });
   }
 
   const email = payload.data?.buyer?.email?.toLowerCase().trim();
