@@ -9,7 +9,7 @@ import {
 } from "@/lib/email/send";
 
 // Greenn webhook. Valida via "Webhook Token" estatico (Greenn manda o token
-// no request — nao usa HMAC).
+// no request — nao usa HMAC). v2.
 
 type GreennPayload = {
   event?: string;
