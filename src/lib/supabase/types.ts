@@ -31,7 +31,7 @@ export type Subscription = {
   id: string;
   user_id: string | null;
   email: string;
-  provider: "kiwify" | "greenn" | "manual";
+  provider: "greenn" | "manual";
   external_id: string;
   plan_name: string | null;
   status:

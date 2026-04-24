@@ -108,7 +108,7 @@ export default async function PerfilPage() {
             </p>
           </div>
           <a
-            href="https://kiwify.app/members"
+            href="https://app.greenn.com.br"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline"
