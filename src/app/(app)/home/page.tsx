@@ -15,8 +15,10 @@ import { MissionConcluirButton } from "@/components/features/mission-concluir-bu
 import { ReflexaoForm } from "@/components/features/reflexao-form";
 import { IniciarDiaCta } from "@/components/features/iniciar-dia-cta";
 import { VideoPlayer } from "@/components/features/video-player";
+import { requireActiveSubscription } from "@/lib/auth/guards";
 
 export default async function HomePage() {
+  await requireActiveSubscription();
   const user = await getCurrentUser();
   const [versiculo, devocional, missao, mensagem, missoesHoje] =
     await Promise.all([

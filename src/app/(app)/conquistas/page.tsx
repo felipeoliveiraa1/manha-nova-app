@@ -3,6 +3,7 @@ import { listConquistas, listUserConquistas } from "@/lib/repo/conquistas";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Crown, BookOpen, Target, Lock, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { requireActiveSubscription } from "@/lib/auth/guards";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   flame: Flame,
@@ -12,6 +13,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default async function ConquistasPage() {
+  await requireActiveSubscription();
   const user = await getCurrentUser();
   const [todas, desbloqueadas] = await Promise.all([
     listConquistas(),

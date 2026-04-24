@@ -80,25 +80,7 @@ export async function updateSession(request: NextRequest) {
     !pathname.startsWith("/admin");
 
   if (needsSubscription) {
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("status,current_period_end")
-      .or(`user_id.eq.${user.id},email.eq.${user.email ?? ""}`)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const subRow = sub as
-      | { status: string; current_period_end: string | null }
-      | null;
-
-    const ativa =
-      subRow &&
-      (subRow.status === "active" || subRow.status === "trialing") &&
-      (!subRow.current_period_end ||
-        new Date(subRow.current_period_end) > new Date());
-
-    // Profile admin bypassa o gate
+    // Admin bypassa o gate
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -106,10 +88,35 @@ export async function updateSession(request: NextRequest) {
       .maybeSingle();
     const isAdminUser = (profile as { role?: string } | null)?.role === "admin";
 
-    if (!ativa && !isAdminUser) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/assinatura-expirada";
-      return NextResponse.redirect(url);
+    if (!isAdminUser) {
+      // Query robusta: so inclui filter de email se ele existir
+      const filter = user.email
+        ? `user_id.eq.${user.id},email.eq.${user.email}`
+        : `user_id.eq.${user.id}`;
+
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("status,current_period_end")
+        .or(filter)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const subRow = sub as
+        | { status: string; current_period_end: string | null }
+        | null;
+
+      const ativa =
+        !!subRow &&
+        (subRow.status === "active" || subRow.status === "trialing") &&
+        (!subRow.current_period_end ||
+          new Date(subRow.current_period_end) > new Date());
+
+      if (!ativa) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/assinatura-expirada";
+        return NextResponse.redirect(url);
+      }
     }
   }
 

@@ -1,6 +1,8 @@
 import { AiChat } from "@/components/features/ai-chat";
+import { requireActiveSubscription } from "@/lib/auth/guards";
 
-export default function IaPage() {
+export default async function IaPage() {
+  await requireActiveSubscription();
   return (
     <div className="px-4 pt-6 pb-8">
       <header className="mb-4">

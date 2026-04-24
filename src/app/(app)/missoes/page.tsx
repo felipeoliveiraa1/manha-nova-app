@@ -6,8 +6,10 @@ import { getCurrentUser } from "@/lib/auth/user";
 import { Card, CardContent } from "@/components/ui/card";
 import { MissionConcluirButton } from "@/components/features/mission-concluir-button";
 import { Flame, Target, Trophy } from "lucide-react";
+import { requireActiveSubscription } from "@/lib/auth/guards";
 
 export default async function MissoesPage() {
+  await requireActiveSubscription();
   const user = await getCurrentUser();
   const [diarias, semanais, desafios, concluidas] = await Promise.all([
     listMissoesPorTipo("diaria"),

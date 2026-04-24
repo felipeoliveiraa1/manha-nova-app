@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  sendWelcomeEmail,
+  sendSubscriptionCanceledEmail,
+  sendPaymentFailedEmail,
+} from "@/lib/email/send";
 
 // Greenn webhook (Hotmart-like). HMAC SHA256 via header `X-Greenn-Signature`.
 
@@ -73,24 +78,27 @@ export async function POST(req: Request) {
   const planName = payload.data?.product?.name ?? null;
 
   const admin = createAdminClient();
+  const nome = payload.data?.buyer?.name ?? email.split("@")[0];
 
   const existingUser = (await admin.auth.admin.listUsers()).data.users.find(
     (u) => u.email?.toLowerCase() === email,
   );
   let userId = existingUser?.id ?? null;
+  let isNewUser = false;
 
   if (!userId && status === "active") {
-    const tempPassword = crypto.randomBytes(16).toString("hex");
-    const { data: created } = await admin.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        nome: payload.data?.buyer?.name ?? email.split("@")[0],
-        provisioned_via: "greenn",
-      },
-    });
-    userId = created.user?.id ?? null;
+    const { data: created, error: createErr } =
+      await admin.auth.admin.createUser({
+        email,
+        password: crypto.randomBytes(16).toString("hex"),
+        email_confirm: true,
+        user_metadata: { nome, provisioned_via: "greenn" },
+      });
+    if (createErr) {
+      console.error("[greenn] createUser failed:", createErr);
+    }
+    userId = created?.user?.id ?? null;
+    isNewUser = !!userId;
   }
 
   const { error } = await admin
@@ -110,6 +118,29 @@ export async function POST(req: Request) {
     );
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Dispara emails transacionais (best-effort, não bloqueia resposta)
+  try {
+    if (isNewUser && status === "active") {
+      const { data: link } = await admin.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/home`,
+        },
+      });
+      const loginUrl =
+        link?.properties?.action_link ??
+        `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`;
+      await sendWelcomeEmail({ email, nome, loginUrl });
+    } else if (status === "canceled" || status === "refunded") {
+      await sendSubscriptionCanceledEmail({ email, nome });
+    } else if (status === "past_due") {
+      await sendPaymentFailedEmail({ email, nome });
+    }
+  } catch (e) {
+    console.error("[greenn] email dispatch failed:", e);
   }
 
   return NextResponse.json({ ok: true });

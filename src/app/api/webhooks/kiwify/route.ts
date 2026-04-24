@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  sendWelcomeEmail,
+  sendSubscriptionCanceledEmail,
+  sendPaymentFailedEmail,
+} from "@/lib/email/send";
 
 // Kiwify envia um token HMAC no header `X-Kiwify-Signature` (ou campo `signature`
 // dependendo da versao). Aqui fazemos verificacao HMAC SHA256 do corpo cru.
@@ -74,38 +79,28 @@ export async function POST(req: Request) {
     payload.Product?.product_name ?? payload.product?.product_name ?? null;
 
   const admin = createAdminClient();
+  const nome = customer?.full_name ?? email.split("@")[0];
 
-  // Tenta achar user pelo email
-  const { data: userRow } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("id", (await admin.auth.admin.listUsers()).data.users.find(
-      (u) => u.email?.toLowerCase() === email,
-    )?.id ?? "")
-    .maybeSingle();
+  // Acha user pelo email
+  const existingUser = (await admin.auth.admin.listUsers()).data.users.find(
+    (u) => u.email?.toLowerCase() === email,
+  );
+  let userId = existingUser?.id ?? null;
+  let isNewUser = false;
 
-  let userId = (userRow as { id: string } | null)?.id ?? null;
-
-  // Se nao existir user, cria um com senha temporaria e dispara reset
   if (!userId && status === "active") {
-    const tempPassword = crypto.randomBytes(16).toString("hex");
-    const { data: created } = await admin.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        nome: customer?.full_name ?? email.split("@")[0],
-        provisioned_via: "kiwify",
-      },
-    });
-    userId = created.user?.id ?? null;
-    // Envia email de recuperacao de senha pra ele definir a propria.
-    if (userId) {
-      await admin.auth.admin.generateLink({
-        type: "recovery",
+    const { data: created, error: createErr } =
+      await admin.auth.admin.createUser({
         email,
+        password: crypto.randomBytes(16).toString("hex"),
+        email_confirm: true,
+        user_metadata: { nome, provisioned_via: "kiwify" },
       });
+    if (createErr) {
+      console.error("[kiwify] createUser failed:", createErr);
     }
+    userId = created?.user?.id ?? null;
+    isNewUser = !!userId;
   }
 
   const { error } = await admin
@@ -126,6 +121,28 @@ export async function POST(req: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  try {
+    if (isNewUser && status === "active") {
+      const { data: link } = await admin.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/home`,
+        },
+      });
+      const loginUrl =
+        link?.properties?.action_link ??
+        `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`;
+      await sendWelcomeEmail({ email, nome, loginUrl });
+    } else if (status === "canceled" || status === "refunded") {
+      await sendSubscriptionCanceledEmail({ email, nome });
+    } else if (status === "past_due") {
+      await sendPaymentFailedEmail({ email, nome });
+    }
+  } catch (e) {
+    console.error("[kiwify] email dispatch failed:", e);
   }
 
   return NextResponse.json({ ok: true });

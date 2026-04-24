@@ -1,7 +1,9 @@
 import { listAudios } from "@/lib/repo/audios";
 import { AudioList } from "@/components/features/audio-list";
+import { requireActiveSubscription } from "@/lib/auth/guards";
 
 export default async function AudioPage() {
+  await requireActiveSubscription();
   const [devocionais, oracoes, ambiente] = await Promise.all([
     listAudios("devocional"),
     listAudios("oracao"),

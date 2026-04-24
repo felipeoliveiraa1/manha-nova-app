@@ -4,6 +4,7 @@ import { listDiarioEntradas } from "@/lib/repo/diario";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { DiarioEvolucaoChart } from "@/components/features/diario-chart";
+import { requireActiveSubscription } from "@/lib/auth/guards";
 import {
   PenLine,
   Plus,
@@ -33,6 +34,7 @@ const ICON_BY_EMOCAO: Record<
 };
 
 export default async function DiarioPage() {
+  await requireActiveSubscription();
   const user = await getCurrentUser();
   const entradas = await listDiarioEntradas(user.id);
 
