@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Flame, BookOpen, Headphones, CheckCircle2 } from "lucide-react";
+import { Flame, BookOpen, Target, CheckCircle2 } from "lucide-react";
 
 /**
  * Mockup de iPhone em CSS puro, mostrando uma versao simplificada da home
@@ -129,7 +129,7 @@ export function PhoneMockup() {
               {[
                 { I: Flame, active: true, l: "Hoje" },
                 { I: BookOpen, active: false, l: "Bíblia" },
-                { I: Headphones, active: false, l: "Áudio" },
+                { I: Target, active: false, l: "Missões" },
               ].map(({ I, active, l }) => (
                 <div key={l} className="flex flex-col items-center gap-0.5">
                   <I

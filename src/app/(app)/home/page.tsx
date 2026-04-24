@@ -2,32 +2,28 @@ import Link from "next/link";
 import { TopHeader } from "@/components/layout/top-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { BookOpen, Headphones, CheckCircle2, Flame, Target } from "lucide-react";
+import { BookOpen, CheckCircle2, Flame, Target } from "lucide-react";
 import { versiculoDoDia } from "@/lib/seed/versiculos";
 import { perguntaDoDia } from "@/lib/seed/perguntas-reflexao";
 import { getDevocionalDoDia } from "@/lib/repo/devocionais";
 import { getMissaoDoDia } from "@/lib/repo/missoes";
-import { getMensagemDoDia } from "@/lib/repo/mensagens";
 import { getCurrentUser } from "@/lib/auth/user";
 import { missoesConcluidasHoje } from "@/lib/repo/stats";
 import { OracaoForm } from "@/components/features/oracao-form";
 import { MissionConcluirButton } from "@/components/features/mission-concluir-button";
 import { ReflexaoForm } from "@/components/features/reflexao-form";
 import { IniciarDiaCta } from "@/components/features/iniciar-dia-cta";
-import { VideoPlayer } from "@/components/features/video-player";
 import { requireActiveSubscription } from "@/lib/auth/guards";
 
 export default async function HomePage() {
   await requireActiveSubscription();
   const user = await getCurrentUser();
-  const [versiculo, devocional, missao, mensagem, missoesHoje] =
-    await Promise.all([
-      Promise.resolve(versiculoDoDia()),
-      getDevocionalDoDia(),
-      getMissaoDoDia(),
-      getMensagemDoDia(),
-      user.isPreview ? Promise.resolve(3) : missoesConcluidasHoje(user.id),
-    ]);
+  const [versiculo, devocional, missao, missoesHoje] = await Promise.all([
+    Promise.resolve(versiculoDoDia()),
+    getDevocionalDoDia(),
+    getMissaoDoDia(),
+    user.isPreview ? Promise.resolve(3) : missoesConcluidasHoje(user.id),
+  ]);
 
   return (
     <div>
@@ -44,20 +40,12 @@ export default async function HomePage() {
               &ldquo;{versiculo.texto}&rdquo;
             </p>
             <p className="text-xs text-muted-foreground">{versiculo.ref}</p>
-            <div className="flex gap-2">
-              <Link
-                href={`/biblia/busca?q=${encodeURIComponent(versiculo.ref)}`}
-                className={buttonVariants({ variant: "secondary", size: "sm" })}
-              >
-                <BookOpen className="h-4 w-4" /> Meditar
-              </Link>
-              <Link
-                href="/audio"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                <Headphones className="h-4 w-4" /> Ouvir
-              </Link>
-            </div>
+            <Link
+              href={`/biblia/busca?q=${encodeURIComponent(versiculo.ref)}`}
+              className={buttonVariants({ variant: "secondary", size: "sm" })}
+            >
+              <BookOpen className="h-4 w-4" /> Meditar
+            </Link>
           </CardContent>
         </Card>
 
@@ -163,14 +151,6 @@ export default async function HomePage() {
 
         {/* Bloco 7 — CTA principal */}
         <IniciarDiaCta />
-
-        {/* Bloco 8 — Mensagem do dia */}
-        <VideoPlayer
-          url={mensagem.video_url}
-          titulo={mensagem.titulo}
-          thumbnail={mensagem.thumbnail_url || null}
-          duracao={mensagem.duracao_seg ?? null}
-        />
 
         {/* Bloco 9 — Conexão */}
         <div className="mt-2 flex items-center justify-center gap-4 py-2 text-xs text-muted-foreground">

@@ -438,7 +438,7 @@ const FEATURES = [
   },
   {
     title: "Bíblia completa",
-    desc: "31.000+ versos em ACF com busca por significado, marcações, notas e áudio.",
+    desc: "31.000+ versos em ACF com busca por significado, marcações e notas.",
     icon: BookOpen,
   },
   {
@@ -511,7 +511,7 @@ const INCLUSO = [
   "Missões, desafios e conquistas",
   "Trilhas de 7 a 21 dias",
   "Diário espiritual com gráfico de evolução",
-  "Áudios, orações guiadas e quiz bíblico",
+  "Quiz bíblico e conquistas",
   "Atualizações semanais de conteúdo",
 ];
 
