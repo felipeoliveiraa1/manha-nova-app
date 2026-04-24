@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0c14"/>
+      <stop offset="55%" stop-color="#1a1f2e"/>
+      <stop offset="100%" stop-color="#2a1d18"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="50%" cy="65%" r="55%">
+      <stop offset="0%" stop-color="#fff4d6"/>
+      <stop offset="35%" stop-color="#f5d99a"/>
+      <stop offset="70%" stop-color="#e8b968"/>
+      <stop offset="100%" stop-color="#b88a3b" stop-opacity="0.3"/>
+    </radialGradient>
+    <linearGradient id="horizon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f1117" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0a0c14"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <circle cx="256" cy="340" r="170" fill="url(#sun)"/>
+
+  <g opacity="0.5" stroke="#f5d99a" stroke-width="3" stroke-linecap="round">
+    <line x1="256" y1="130" x2="256" y2="180"/>
+    <line x1="130" y1="260" x2="180" y2="260"/>
+    <line x1="382" y1="260" x2="332" y2="260"/>
+    <line x1="160" y1="160" x2="196" y2="196"/>
+    <line x1="352" y1="160" x2="316" y2="196"/>
+  </g>
+
+  <rect y="350" width="512" height="162" fill="url(#horizon)"/>
+
+  <g opacity="0.95">
+    <rect x="249" y="240" width="14" height="90" rx="2" fill="#0a0c14"/>
+    <rect x="225" y="264" width="62" height="14" rx="2" fill="#0a0c14"/>
+  </g>
+</svg>
