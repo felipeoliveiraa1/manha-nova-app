@@ -40,7 +40,8 @@ export async function listDevocionais(): Promise<Devocional[]> {
       .from("devocionais")
       .select("*")
       .eq("publicado", true)
-      .order("ordem", { ascending: true });
+      .order("ordem", { ascending: true })
+      .limit(100);
     if (data && data.length > 0) return data as Devocional[];
   }
   return DEVOCIONAIS_SEED;
@@ -53,7 +54,8 @@ export async function listSeries(): Promise<DevocionalSerie[]> {
       .from("devocional_series")
       .select("*")
       .eq("publicado", true)
-      .order("ordem", { ascending: true });
+      .order("ordem", { ascending: true })
+      .limit(50);
     if (data && data.length > 0) return data as DevocionalSerie[];
   }
   return SERIES_SEED;

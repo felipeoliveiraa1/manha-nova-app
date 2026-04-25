@@ -33,7 +33,8 @@ export async function listMissoesPorTipo(
       .select("*")
       .eq("tipo", tipo)
       .eq("publicado", true)
-      .order("ordem", { ascending: true });
+      .order("ordem", { ascending: true })
+      .limit(100);
     if (data && data.length > 0) return data as Missao[];
   }
   const map = {

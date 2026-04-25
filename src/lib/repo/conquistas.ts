@@ -58,7 +58,8 @@ export async function listConquistas(): Promise<Conquista[]> {
     const { data } = await supabase
       .from("conquistas")
       .select("*")
-      .order("slug", { ascending: true });
+      .order("slug", { ascending: true })
+      .limit(100);
     if (data && data.length > 0) return data as Conquista[];
   }
   return CONQUISTAS_SEED;
