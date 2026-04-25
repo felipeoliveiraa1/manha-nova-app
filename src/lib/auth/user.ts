@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClientOrNull, hasSupabaseEnv } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -36,7 +37,7 @@ const PREVIEW_USER: CurrentUser = {
  * Retorna o usuario atual + profile, com fallback de preview quando Supabase
  * nao esta configurado. Permite que todas as paginas renderizem sem crash.
  */
-export async function getCurrentUser(): Promise<CurrentUser> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
   if (!hasSupabaseEnv()) return PREVIEW_USER;
 
   const supabase = await createClientOrNull();
@@ -65,4 +66,4 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     profile,
     isPreview: false,
   };
-}
+});
