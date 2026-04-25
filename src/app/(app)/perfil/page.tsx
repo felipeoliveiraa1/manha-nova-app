@@ -108,7 +108,7 @@ export default async function PerfilPage() {
             </p>
           </div>
           <a
-            href="https://app.greenn.com.br"
+            href="https://app.greenn.club/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline"
