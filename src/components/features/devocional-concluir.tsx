@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { concluirDevocionalAction } from "@/lib/auth/actions-app";
@@ -8,11 +9,16 @@ import { toast } from "sonner";
 
 export function DevocionalConcluir({
   devocionalSlug,
+  jaConcluido = false,
+  anotacaoSalva = "",
 }: {
   devocionalSlug: string;
+  jaConcluido?: boolean;
+  anotacaoSalva?: string;
 }) {
-  const [done, setDone] = useState(false);
-  const [anotacao, setAnotacao] = useState("");
+  const router = useRouter();
+  const [done, setDone] = useState(jaConcluido);
+  const [anotacao, setAnotacao] = useState(anotacaoSalva);
   const [pending, startTransition] = useTransition();
 
   function onConcluir() {
@@ -26,6 +32,7 @@ export function DevocionalConcluir({
         toast.success(
           res.preview ? "Concluído (modo preview)" : "Devocional concluído! +15 pontos",
         );
+        router.refresh();
       } else {
         toast.error(res.error ?? "Erro.");
       }

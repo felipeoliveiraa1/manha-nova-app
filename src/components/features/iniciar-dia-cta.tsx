@@ -1,26 +1,55 @@
 "use client";
 
-import { useTransition } from "react";
-import { Sparkles } from "lucide-react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Sparkles } from "lucide-react";
 import { iniciarDiaAction } from "@/lib/auth/actions-app";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export function IniciarDiaCta() {
+export function IniciarDiaCta({
+  jaIniciadoHoje = false,
+}: {
+  jaIniciadoHoje?: boolean;
+}) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [feito, setFeito] = useState(jaIniciadoHoje);
 
   function onClick() {
+    if (feito) return;
     startTransition(async () => {
       const res = await iniciarDiaAction();
       if (res.ok) {
         toast.success(
           res.preview ? "Dia iniciado (preview)" : "Bom dia começado! +5 pontos",
         );
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setFeito(true);
+        router.refresh();
       } else {
         toast.error(res.error ?? "Erro.");
       }
     });
+  }
+
+  if (feito) {
+    return (
+      <div className="relative w-full overflow-hidden rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-5">
+        <div className="relative flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-500 text-white">
+            <CheckCircle2 className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[11px] uppercase tracking-wider text-emerald-500">
+              Dia marcado
+            </p>
+            <p className="font-serif text-lg font-semibold">
+              Você começou seu dia com Deus hoje
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

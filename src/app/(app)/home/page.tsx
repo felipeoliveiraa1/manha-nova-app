@@ -29,6 +29,8 @@ export default async function HomePage() {
   const meditarHref = refParsed
     ? `/biblia/${refParsed.abbrev}/${refParsed.capitulo}#v${refParsed.versiculo}`
     : `/biblia/busca?q=${encodeURIComponent(versiculo.ref)}`;
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const iniciadoHoje = user.profile.ultimo_acesso_dia === hojeISO;
 
   return (
     <div>
@@ -155,28 +157,7 @@ export default async function HomePage() {
         </Card>
 
         {/* Bloco 7 — CTA principal */}
-        <IniciarDiaCta />
-
-        {/* Bloco 9 — Conexão */}
-        <div className="mt-2 flex items-center justify-center gap-4 py-2 text-xs text-muted-foreground">
-          <a
-            href="https://instagram.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground"
-          >
-            @Instagram
-          </a>
-          <span className="opacity-30">•</span>
-          <a
-            href="https://youtube.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground"
-          >
-            YouTube
-          </a>
-        </div>
+        <IniciarDiaCta jaIniciadoHoje={iniciadoHoje} />
       </main>
     </div>
   );
