@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -11,7 +11,7 @@ function safeNext(raw: string | null): string {
   return raw;
 }
 
-export default function AuthCallbackPage() {
+function CallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -62,10 +62,18 @@ export default function AuthCallbackPage() {
   }, [router, searchParams]);
 
   return (
+    <p className="text-sm text-muted-foreground">
+      {error ?? "Validando link..."}
+    </p>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
     <div className="flex min-h-screen items-center justify-center">
-      <p className="text-sm text-muted-foreground">
-        {error ?? "Validando link..."}
-      </p>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Validando link...</p>}>
+        <CallbackInner />
+      </Suspense>
     </div>
   );
 }
