@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { createClientOrNull } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import {
   DEVOCIONAIS_SEED,
   SERIES_SEED,
@@ -7,10 +8,12 @@ import {
 } from "@/lib/seed/devocionais";
 import type { Devocional, DevocionalSerie } from "@/lib/supabase/types";
 
+// Usa createPublicClient (sem cookies) — Next 15+ proibe acessar cookies
+// dentro de unstable_cache. Devocionais publicados sao dados publicos.
 const _fetchPublicados = async (): Promise<Devocional[]> => {
-  const supabase = await createClientOrNull();
-  if (!supabase) return DEVOCIONAIS_SEED;
-  const { data } = await supabase
+  const pub = createPublicClient();
+  if (!pub) return DEVOCIONAIS_SEED;
+  const { data } = await pub
     .from("devocionais")
     .select("*")
     .eq("publicado", true)
