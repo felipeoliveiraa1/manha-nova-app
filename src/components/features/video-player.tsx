@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { PlayCircle, X, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,11 +40,13 @@ export function VideoPlayer({
           className="group relative block aspect-video w-full bg-linear-to-br from-zinc-900 to-zinc-800"
         >
           {thumbnail && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={thumbnail}
               alt={titulo}
-              className="absolute inset-0 h-full w-full object-cover opacity-80"
+              fill
+              sizes="(max-width: 640px) 100vw, 640px"
+              className="object-cover opacity-80"
+              unoptimized
             />
           )}
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition group-hover:bg-black/10">
