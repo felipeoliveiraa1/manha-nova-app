@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { novaSenhaAction } from "@/lib/auth/actions";
@@ -51,10 +51,9 @@ export default async function NovaSenhaPage({
       <form action={novaSenhaAction} className="mt-6 flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="senha">Nova senha</Label>
-          <Input
+          <PasswordInput
             id="senha"
             name="senha"
-            type="password"
             required
             minLength={8}
             autoComplete="new-password"
@@ -65,10 +64,9 @@ export default async function NovaSenhaPage({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="confirmar">Confirmar nova senha</Label>
-          <Input
+          <PasswordInput
             id="confirmar"
             name="confirmar"
-            type="password"
             required
             minLength={8}
             autoComplete="new-password"
