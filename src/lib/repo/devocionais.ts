@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { createClientOrNull } from "@/lib/supabase/server";
 import {
   DEVOCIONAIS_SEED,
@@ -6,7 +7,33 @@ import {
 } from "@/lib/seed/devocionais";
 import type { Devocional, DevocionalSerie } from "@/lib/supabase/types";
 
+const _fetchPublicados = async (): Promise<Devocional[]> => {
+  const supabase = await createClientOrNull();
+  if (!supabase) return DEVOCIONAIS_SEED;
+  const { data } = await supabase
+    .from("devocionais")
+    .select("*")
+    .eq("publicado", true)
+    .order("ordem", { ascending: true })
+    .limit(500);
+  if (!data || data.length === 0) return DEVOCIONAIS_SEED;
+  return data as Devocional[];
+};
+const fetchPublicadosCached = unstable_cache(
+  _fetchPublicados,
+  ["devocionais_publicados_v1"],
+  { revalidate: 86400, tags: ["devocionais"] },
+);
+
+function dayOfYear(): number {
+  const now = new Date();
+  return Math.floor(
+    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000,
+  );
+}
+
 export async function getDevocionalDoDia(): Promise<Devocional> {
+  // 1. Se houver devocional com data fixa pra hoje, usa (curadoria manual).
   const supabase = await createClientOrNull();
   if (supabase) {
     const { data } = await supabase
@@ -17,7 +44,10 @@ export async function getDevocionalDoDia(): Promise<Devocional> {
       .maybeSingle();
     if (data) return data as Devocional;
   }
-  return seedDevocionalDoDia();
+  // 2. Senao, rotaciona pelo dia do ano sobre os publicados (cache 24h).
+  const lista = await fetchPublicadosCached();
+  if (lista.length === 0) return seedDevocionalDoDia();
+  return lista[dayOfYear() % lista.length];
 }
 
 export async function getDevocional(slug: string): Promise<Devocional | null> {
@@ -41,7 +71,7 @@ export async function listDevocionais(): Promise<Devocional[]> {
       .select("*")
       .eq("publicado", true)
       .order("ordem", { ascending: true })
-      .limit(100);
+      .limit(500);
     if (data && data.length > 0) return data as Devocional[];
   }
   return DEVOCIONAIS_SEED;
