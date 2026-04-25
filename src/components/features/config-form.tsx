@@ -14,8 +14,6 @@ import { PushToggle } from "@/components/features/push-toggle";
 
 const VERSOES = [
   { id: "ACF", nome: "ACF — Almeida Corrigida Fiel" },
-  { id: "ARA", nome: "ARA — Almeida Revista e Atualizada (em breve)" },
-  { id: "NVI", nome: "NVI — Nova Versão Internacional (em breve)" },
 ];
 
 export function ConfigForm({
