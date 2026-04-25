@@ -56,7 +56,7 @@ export default async function DevocionalPage({
         </section>
       )}
 
-      <DevocionalConcluir devocionalId={devocional.id} />
+      <DevocionalConcluir devocionalSlug={slug} />
     </div>
   );
 }

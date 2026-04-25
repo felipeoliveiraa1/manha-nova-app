@@ -107,9 +107,9 @@ export async function concluirMissaoAction(formData: FormData) {
 }
 
 export async function concluirDevocionalAction(formData: FormData) {
-  const devocionalId = String(formData.get("devocional_id") ?? "");
+  const slug = String(formData.get("devocional_slug") ?? "").trim();
   const anotacao = String(formData.get("anotacao") ?? "").trim() || null;
-  if (!devocionalId) return { ok: false, error: "Devocional não informado." };
+  if (!slug) return { ok: false, error: "Devocional não informado." };
 
   const user = await getCurrentUser();
   if (user.isPreview) return { ok: true, preview: true };
@@ -117,10 +117,26 @@ export async function concluirDevocionalAction(formData: FormData) {
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
 
+  // Busca o UUID real pelo slug — o id que vem do seed local nao eh UUID,
+  // entao precisamos resolver no banco antes de inserir o progresso.
+  const { data: devo } = await supabase
+    .from("devocionais")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  const realId = (devo as { id: string } | null)?.id;
+  if (!realId) {
+    return {
+      ok: false,
+      error: "Este devocional ainda não está disponível pra conclusão.",
+    };
+  }
+
   const { error } = await supabase
     .from("user_devocional_progress")
     .upsert(
-      { user_id: user.id, devocional_id: devocionalId, anotacao },
+      { user_id: user.id, devocional_id: realId, anotacao },
       { onConflict: "user_id,devocional_id" },
     );
   if (error) return { ok: false, error: error.message };

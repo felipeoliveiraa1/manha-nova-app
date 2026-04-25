@@ -7,9 +7,9 @@ import { concluirDevocionalAction } from "@/lib/auth/actions-app";
 import { toast } from "sonner";
 
 export function DevocionalConcluir({
-  devocionalId,
+  devocionalSlug,
 }: {
-  devocionalId: string;
+  devocionalSlug: string;
 }) {
   const [done, setDone] = useState(false);
   const [anotacao, setAnotacao] = useState("");
@@ -17,7 +17,7 @@ export function DevocionalConcluir({
 
   function onConcluir() {
     const fd = new FormData();
-    fd.set("devocional_id", devocionalId);
+    fd.set("devocional_slug", devocionalSlug);
     if (anotacao) fd.set("anotacao", anotacao);
     startTransition(async () => {
       const res = await concluirDevocionalAction(fd);
