@@ -75,6 +75,44 @@ export const BIBLE_BOOKS: Omit<BibleBook, "version_id">[] = [
   { id: 66, abbrev: "ap", nome: "Apocalipse", testamento: "NT", ordem: 66, total_capitulos: 22 },
 ];
 
+function normalize(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export function findBookByName(nome: string) {
+  const target = normalize(nome);
+  return BIBLE_BOOKS.find((b) => normalize(b.nome) === target);
+}
+
+/**
+ * Parseia "Salmos 23:1", "1 Samuel 17:45", "Proverbios 3:5-6".
+ * Retorna { abbrev, capitulo, versiculo } ou null se nao reconhecer.
+ */
+export function parseRef(
+  ref: string,
+): { abbrev: string; capitulo: number; versiculo: number } | null {
+  if (!ref) return null;
+  const trimmed = ref.trim();
+  // Split na ULTIMA ocorrencia de espaco — separa "1 Samuel" de "17:45".
+  const lastSpace = trimmed.lastIndexOf(" ");
+  if (lastSpace < 0) return null;
+  const nomeRaw = trimmed.slice(0, lastSpace);
+  const cv = trimmed.slice(lastSpace + 1);
+  const book = findBookByName(nomeRaw);
+  if (!book) return null;
+  const m = /^(\d+):(\d+)/.exec(cv);
+  if (!m) return null;
+  const capitulo = Number(m[1]);
+  const versiculo = Number(m[2]);
+  if (!Number.isFinite(capitulo) || !Number.isFinite(versiculo)) return null;
+  if (capitulo < 1 || capitulo > book.total_capitulos) return null;
+  return { abbrev: book.abbrev, capitulo, versiculo };
+}
+
 export function findBookByAbbrev(abbrev: string) {
   return BIBLE_BOOKS.find((b) => b.abbrev === abbrev.toLowerCase());
 }

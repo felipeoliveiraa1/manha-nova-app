@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { BookOpen, CheckCircle2, Flame, Target } from "lucide-react";
 import { versiculoDoDia } from "@/lib/seed/versiculos";
+import { parseRef } from "@/lib/seed/bible-books";
 import { perguntaDoDia } from "@/lib/seed/perguntas-reflexao";
 import { getDevocionalDoDia } from "@/lib/repo/devocionais";
 import { getMissaoDoDia } from "@/lib/repo/missoes";
@@ -24,6 +25,10 @@ export default async function HomePage() {
     getMissaoDoDia(),
     user.isPreview ? Promise.resolve(3) : missoesConcluidasHoje(user.id),
   ]);
+  const refParsed = parseRef(versiculo.ref);
+  const meditarHref = refParsed
+    ? `/biblia/${refParsed.abbrev}/${refParsed.capitulo}#v${refParsed.versiculo}`
+    : `/biblia/busca?q=${encodeURIComponent(versiculo.ref)}`;
 
   return (
     <div>
@@ -41,7 +46,7 @@ export default async function HomePage() {
             </p>
             <p className="text-xs text-muted-foreground">{versiculo.ref}</p>
             <Link
-              href={`/biblia/busca?q=${encodeURIComponent(versiculo.ref)}`}
+              href={meditarHref}
               className={buttonVariants({ variant: "secondary", size: "sm" })}
             >
               <BookOpen className="h-4 w-4" /> Meditar
