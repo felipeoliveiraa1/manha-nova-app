@@ -1,7 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { createClientOrNull } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { BIBLE_BOOKS, findBookByAbbrev } from "@/lib/seed/bible-books";
 import {
   CAPITULOS_ACF,
@@ -25,8 +24,6 @@ export type BibleSearchResult = {
 };
 
 const DEFAULT_VERSION = "ACF";
-const EMBED_MODEL = "text-embedding-3-small";
-const EMBED_DIM = 1536;
 
 // -----------------------------------------------------------------
 // Leitura PUBLICA (sem auth, cacheavel)
@@ -173,94 +170,22 @@ export async function buscarNaBiblia(
   return out;
 }
 
-// -----------------------------------------------------------------
-// BUSCA SEMANTICA (embeddings)
-// -----------------------------------------------------------------
-
-async function gerarEmbedding(query: string): Promise<number[] | null> {
-  if (!process.env.OPENAI_API_KEY) return null;
-  try {
-    const res = await fetch("https://api.openai.com/v1/embeddings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: EMBED_MODEL,
-        input: query,
-        dimensions: EMBED_DIM,
-      }),
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { data: { embedding: number[] }[] };
-    return data.data[0]?.embedding ?? null;
-  } catch {
-    return null;
-  }
-}
-
+// Busca semantica desativada — embeddings dropados pra ficar dentro do free
+// tier do Supabase. As funcoes abaixo agora caem direto na busca textual,
+// mantendo a API publica intacta pra quem chama.
 export async function buscarSemantica(
   query: string,
   versionId = DEFAULT_VERSION,
   limit = 20,
 ): Promise<BibleSearchResult[]> {
-  const q = query.trim();
-  if (!q) return [];
-
-  const embedding = await gerarEmbedding(q);
-  if (!embedding) return buscarNaBiblia(query, versionId, limit);
-
-  // Usa admin client no servidor pra evitar statement_timeout do anon
-  // enquanto o indice HNSW nao esta criado. Server-side only — seguro.
-  let client;
-  try {
-    client = createAdminClient();
-  } catch {
-    const pub = createPublicClient();
-    if (!pub) return buscarNaBiblia(query, versionId, limit);
-    client = pub;
-  }
-
-  const { data, error } = await client.rpc("match_bible_verses", {
-    query_embedding: embedding,
-    match_threshold: 0.3,
-    match_count: limit,
-    version: versionId,
-  });
-
-  if (error || !data || (data as unknown[]).length === 0) {
-    return buscarNaBiblia(query, versionId, limit);
-  }
-
-  const bookById = new Map(BIBLE_BOOKS.map((b) => [b.id, b]));
-  return (
-    data as Array<{
-      id: number;
-      book_id: number;
-      capitulo: number;
-      versiculo: number;
-      texto: string;
-      similarity: number;
-    }>
-  ).map((r) => {
-    const b = bookById.get(r.book_id);
-    return {
-      book_abbrev: b?.abbrev ?? "",
-      book_nome: b?.nome ?? "",
-      capitulo: r.capitulo,
-      versiculo: r.versiculo,
-      texto: r.texto,
-      similarity: r.similarity,
-    };
-  });
+  return buscarNaBiblia(query, versionId, limit);
 }
 
 export async function buscarVersiculosRelevantes(
   query: string,
   limit = 3,
 ): Promise<BibleSearchResult[]> {
-  return buscarSemantica(query, DEFAULT_VERSION, limit);
+  return buscarNaBiblia(query, DEFAULT_VERSION, limit);
 }
 
 // Mantemos a importacao do server client pra compat (destaques, notas do usuario).

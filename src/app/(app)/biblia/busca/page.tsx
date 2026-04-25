@@ -1,32 +1,22 @@
 import Link from "next/link";
 import {
   buscarNaBiblia,
-  buscarSemantica,
   type BibleSearchResult,
 } from "@/lib/repo/biblia";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Search, Sparkles, TextSearch } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-type Modo = "texto" | "semantica";
+import { ArrowLeft, Search } from "lucide-react";
 
 export default async function BuscaBibliaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; modo?: Modo }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const { q = "", modo: modoParam } = await searchParams;
+  const { q = "" } = await searchParams;
   const query = q.trim();
-  const modo: Modo = (modoParam === "texto" || modoParam === "semantica")
-    ? modoParam
-    : autoDetectMode(query);
 
   let results: BibleSearchResult[] = [];
   if (query) {
-    results =
-      modo === "semantica"
-        ? await buscarSemantica(query, "ACF", 30)
-        : await buscarNaBiblia(query, "ACF", 30);
+    results = await buscarNaBiblia(query, "ACF", 30);
   }
 
   return (
@@ -41,11 +31,11 @@ export default async function BuscaBibliaPage({
       <header className="mt-4 mb-4">
         <h1 className="font-serif text-2xl font-semibold">Buscar na Bíblia</h1>
         <p className="text-xs text-muted-foreground">
-          Digite uma palavra, expressão ou até sentimento.
+          Digite uma palavra ou expressão.
         </p>
       </header>
 
-      <form method="get" className="mb-3">
+      <form method="get" className="mb-6">
         <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 focus-within:border-primary/40">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
@@ -55,22 +45,13 @@ export default async function BuscaBibliaPage({
             placeholder="Ex: paz, ansiedade, perdão, força..."
             className="w-full bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
           />
-          <input type="hidden" name="modo" value={modo} />
         </div>
       </form>
-
-      <div className="mb-6 flex gap-2">
-        <ModoLink modo="semantica" atual={modo} q={query} label="Significado" icon={<Sparkles className="h-3.5 w-3.5" />} />
-        <ModoLink modo="texto" atual={modo} q={query} label="Palavra" icon={<TextSearch className="h-3.5 w-3.5" />} />
-      </div>
 
       {query && (
         <p className="mb-3 text-xs text-muted-foreground">
           {results.length} resultado{results.length === 1 ? "" : "s"} para
-          &ldquo;{query}&rdquo; · modo{" "}
-          <span className="text-primary">
-            {modo === "semantica" ? "significado" : "palavra"}
-          </span>
+          &ldquo;{query}&rdquo;
         </p>
       )}
 
@@ -93,9 +74,7 @@ export default async function BuscaBibliaPage({
                   )}
                 </div>
                 <p className="text-sm leading-relaxed text-foreground/90">
-                  {modo === "texto"
-                    ? highlightMatches(r.texto, query)
-                    : r.texto}
+                  {highlightMatches(r.texto, query)}
                 </p>
               </CardContent>
             </Card>
@@ -106,51 +85,11 @@ export default async function BuscaBibliaPage({
       {query && results.length === 0 && (
         <Card>
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            Nenhum resultado. Tente outra palavra ou mude o modo de busca.
+            Nenhum resultado. Tente outra palavra.
           </CardContent>
         </Card>
       )}
     </div>
-  );
-}
-
-function autoDetectMode(query: string): Modo {
-  // Query com 3+ palavras OU com pontuação de sentimento → semântica por padrão.
-  const words = query.trim().split(/\s+/).filter(Boolean);
-  if (words.length >= 3) return "semantica";
-  // Se a query é só uma palavra curta tipo "amor", "paz", a busca semântica
-  // tende a ser mais útil também. Default: semantica.
-  return "semantica";
-}
-
-function ModoLink({
-  modo,
-  atual,
-  q,
-  label,
-  icon,
-}: {
-  modo: Modo;
-  atual: Modo;
-  q: string;
-  label: string;
-  icon: React.ReactNode;
-}) {
-  const active = atual === modo;
-  const href = `/biblia/busca?q=${encodeURIComponent(q)}&modo=${modo}`;
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition",
-        active
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-border text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {icon}
-      {label}
-    </Link>
   );
 }
 
