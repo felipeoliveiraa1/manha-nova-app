@@ -163,11 +163,52 @@ function verifyToken(req: Request, body: string, payload: GreennPayload) {
 function statusFromGreenn(
   s: string | undefined,
 ): "active" | "refunded" | "canceled" | "past_due" | "expired" {
-  const v = (s ?? "").toLowerCase();
-  if (v === "paid" || v === "approved" || v === "active") return "active";
-  if (v === "refunded") return "refunded";
-  if (v === "canceled" || v === "cancelled") return "canceled";
-  if (v === "overdue" || v === "past_due") return "past_due";
+  const v = (s ?? "").toLowerCase().trim();
+  // Variantes que indicam pagamento aprovado / assinatura ativa
+  const ATIVOS = [
+    "paid",
+    "approved",
+    "active",
+    "completed",
+    "complete",
+    "success",
+    "succeeded",
+    "purchase_approved",
+    "purchase.approved",
+    "purchase_completed",
+    "purchase.completed",
+    "subscription.active",
+    "subscription_active",
+    "trialing",
+    "trial",
+    "pago",
+    "aprovado",
+    "concluido",
+    "concluído",
+  ];
+  if (ATIVOS.includes(v)) return "active";
+  if (
+    v === "refunded" ||
+    v === "refund" ||
+    v === "estornado" ||
+    v === "reembolsado"
+  )
+    return "refunded";
+  if (
+    v === "canceled" ||
+    v === "cancelled" ||
+    v === "cancelado" ||
+    v === "subscription.canceled" ||
+    v === "subscription_canceled"
+  )
+    return "canceled";
+  if (
+    v === "overdue" ||
+    v === "past_due" ||
+    v === "atrasado" ||
+    v === "vencido"
+  )
+    return "past_due";
   return "expired";
 }
 
