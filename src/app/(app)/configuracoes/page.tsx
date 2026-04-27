@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/user";
 import { ConfigForm } from "@/components/features/config-form";
+import { AlterarSenhaForm } from "@/components/features/alterar-senha-form";
 
 export default async function ConfiguracoesPage() {
   const user = await getCurrentUser();
@@ -18,6 +19,12 @@ export default async function ConfiguracoesPage() {
           versao: user.profile.preferencia_versao_biblia,
         }}
       />
+
+      {!user.isPreview && (
+        <div className="mt-4">
+          <AlterarSenhaForm />
+        </div>
+      )}
     </div>
   );
 }

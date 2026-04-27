@@ -117,3 +117,52 @@ export async function logoutAction() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export async function alterarSenhaAction(formData: FormData) {
+  const senhaAtual = String(formData.get("senha_atual") ?? "");
+  const novaSenha = String(formData.get("nova_senha") ?? "");
+  const confirmar = String(formData.get("confirmar") ?? "");
+
+  if (!hasSupabase()) {
+    return { ok: false, error: NOT_CONFIGURED_MSG };
+  }
+  if (!senhaAtual) {
+    return { ok: false, error: "Informe sua senha atual." };
+  }
+  if (novaSenha.length < 8) {
+    return { ok: false, error: "Nova senha deve ter ao menos 8 caracteres." };
+  }
+  if (novaSenha !== confirmar) {
+    return { ok: false, error: "As senhas novas não coincidem." };
+  }
+  if (novaSenha === senhaAtual) {
+    return { ok: false, error: "Nova senha deve ser diferente da atual." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || !user.email) {
+    return { ok: false, error: "Sessão expirada. Faça login de novo." };
+  }
+
+  // Valida senha atual re-autenticando — evita que alguem com sessao roubada
+  // troque a senha sem conhecer a anterior.
+  const { error: signInErr } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: senhaAtual,
+  });
+  if (signInErr) {
+    return { ok: false, error: "Senha atual incorreta." };
+  }
+
+  const { error: updateErr } = await supabase.auth.updateUser({
+    password: novaSenha,
+  });
+  if (updateErr) {
+    return { ok: false, error: updateErr.message };
+  }
+
+  return { ok: true };
+}
