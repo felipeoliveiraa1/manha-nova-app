@@ -196,7 +196,8 @@ export async function POST(req: Request) {
   }
 
   const externalId = resolveExternalId(payload) ?? email;
-  const status = statusFromGreenn(resolveStatus(payload) ?? undefined);
+  const rawStatus = resolveStatus(payload);
+  const status = statusFromGreenn(rawStatus ?? undefined);
   const currentPeriodEnd = resolveNextBilling(payload);
   const planName = resolvePlanName(payload);
 
@@ -209,6 +210,14 @@ export async function POST(req: Request) {
   let userId = existingUser?.id ?? null;
   let isNewUser = false;
   let senhaGerada: string | null = null;
+
+  console.log("[greenn] processando", {
+    email,
+    rawStatus,
+    statusMapeado: status,
+    userJaExiste: !!existingUser,
+    event: payload.event,
+  });
 
   if (!userId && status === "active") {
     senhaGerada = generateReadablePassword(10);
@@ -249,11 +258,23 @@ export async function POST(req: Request) {
   try {
     if (isNewUser && status === "active" && senhaGerada) {
       const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`;
+      console.log("[greenn] enviando welcome email", { email });
       await sendWelcomeEmail({ email, nome, senha: senhaGerada, loginUrl });
     } else if (status === "canceled" || status === "refunded") {
       await sendSubscriptionCanceledEmail({ email, nome });
     } else if (status === "past_due") {
       await sendPaymentFailedEmail({ email, nome });
+    } else {
+      console.log("[greenn] nao enviou email", {
+        isNewUser,
+        status,
+        temSenha: !!senhaGerada,
+        motivo: !isNewUser
+          ? "usuario ja existia"
+          : status !== "active"
+            ? `status nao-active (${status})`
+            : "sem senha gerada",
+      });
     }
   } catch (e) {
     console.error("[greenn] email dispatch failed:", e);
