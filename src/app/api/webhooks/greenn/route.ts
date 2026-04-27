@@ -11,23 +11,120 @@ import {
 // Greenn webhook. Valida via "Webhook Token" estatico (Greenn manda o token
 // no request — nao usa HMAC). v2.
 
-type GreennPayload = {
+type GreennPayload = Record<string, unknown> & {
   event?: string;
   token?: string;
   webhook_token?: string;
-  data?: {
-    buyer?: { email?: string; name?: string };
-    product?: { id?: string; name?: string };
-    subscription?: {
-      id?: string;
-      status?: string;
-      next_billing_at?: string;
-    };
-    status?: string;
-    transaction_id?: string;
-    token?: string;
-  };
+  data?: Record<string, unknown>;
 };
+
+// Greenn varia o formato do payload entre eventos/integrações.
+// Estes helpers tentam caminhos comuns ate achar o valor.
+type AnyObj = Record<string, unknown> | undefined | null;
+
+function pickString(obj: unknown, paths: string[]): string | null {
+  if (!obj || typeof obj !== "object") return null;
+  for (const path of paths) {
+    const parts = path.split(".");
+    let cur: unknown = obj;
+    for (const p of parts) {
+      if (cur && typeof cur === "object" && p in (cur as AnyObj)!) {
+        cur = (cur as Record<string, unknown>)[p];
+      } else {
+        cur = undefined;
+        break;
+      }
+    }
+    if (typeof cur === "string" && cur.trim()) return cur.trim();
+  }
+  return null;
+}
+
+function resolveEmail(p: GreennPayload): string | null {
+  return pickString(p, [
+    "data.buyer.email",
+    "buyer.email",
+    "data.customer.email",
+    "customer.email",
+    "data.user.email",
+    "user.email",
+    "data.client.email",
+    "client.email",
+    "data.email",
+    "email",
+  ])?.toLowerCase() ?? null;
+}
+
+function resolveName(p: GreennPayload): string | null {
+  return pickString(p, [
+    "data.buyer.name",
+    "buyer.name",
+    "data.customer.name",
+    "customer.name",
+    "data.user.name",
+    "user.name",
+    "data.client.name",
+    "client.name",
+    "data.name",
+    "name",
+  ]);
+}
+
+function resolveStatus(p: GreennPayload): string | null {
+  return pickString(p, [
+    "data.subscription.status",
+    "subscription.status",
+    "data.status",
+    "status",
+    "event",
+  ]);
+}
+
+function resolveExternalId(p: GreennPayload): string | null {
+  return pickString(p, [
+    "data.subscription.id",
+    "subscription.id",
+    "data.transaction_id",
+    "transaction_id",
+    "data.id",
+    "id",
+  ]);
+}
+
+function resolvePlanName(p: GreennPayload): string | null {
+  return pickString(p, [
+    "data.product.name",
+    "product.name",
+    "data.plan.name",
+    "plan.name",
+    "data.offer.name",
+    "offer.name",
+  ]);
+}
+
+function resolveNextBilling(p: GreennPayload): string | null {
+  return pickString(p, [
+    "data.subscription.next_billing_at",
+    "subscription.next_billing_at",
+    "data.next_billing_at",
+    "next_billing_at",
+    "data.subscription.expires_at",
+    "subscription.expires_at",
+  ]);
+}
+
+function sanitizeForLog(p: unknown): unknown {
+  if (!p || typeof p !== "object") return p;
+  const clone = JSON.parse(JSON.stringify(p)) as Record<string, unknown>;
+  // remove tokens/secrets do log
+  for (const key of ["token", "webhook_token", "Authorization", "authorization"]) {
+    if (key in clone) delete clone[key];
+    if (clone.data && typeof clone.data === "object" && clone.data !== null) {
+      delete (clone.data as Record<string, unknown>)[key];
+    }
+  }
+  return clone;
+}
 
 function timingSafeEq(a: string, b: string) {
   const ab = Buffer.from(a);
@@ -41,6 +138,12 @@ function verifyToken(req: Request, body: string, payload: GreennPayload) {
   if (!expected) return true; // fail-open se nao configurado (dev)
 
   const url = new URL(req.url);
+  const tokenFromBody = pickString(payload, [
+    "token",
+    "webhook_token",
+    "data.token",
+    "data.webhook_token",
+  ]);
   const candidates: (string | null | undefined)[] = [
     req.headers.get("authorization")?.replace(/^Bearer\s+/i, ""),
     req.headers.get("x-webhook-token"),
@@ -48,9 +151,7 @@ function verifyToken(req: Request, body: string, payload: GreennPayload) {
     req.headers.get("x-greenn-signature"),
     req.headers.get("token"),
     url.searchParams.get("token"),
-    payload.token,
-    payload.webhook_token,
-    payload.data?.token,
+    tokenFromBody,
   ];
 
   // Ultimo recurso: token aparece em algum lugar no body cru
@@ -85,23 +186,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid token" }, { status: 401 });
   }
 
-  const email = payload.data?.buyer?.email?.toLowerCase().trim();
+  const email = resolveEmail(payload);
   if (!email) {
+    console.warn(
+      "[greenn] missing email — payload recebido:",
+      JSON.stringify(sanitizeForLog(payload)).slice(0, 2000),
+    );
     return NextResponse.json({ error: "missing email" }, { status: 400 });
   }
 
-  const externalId =
-    payload.data?.subscription?.id ??
-    payload.data?.transaction_id ??
-    email;
-  const status = statusFromGreenn(
-    payload.data?.subscription?.status ?? payload.data?.status,
-  );
-  const currentPeriodEnd = payload.data?.subscription?.next_billing_at ?? null;
-  const planName = payload.data?.product?.name ?? null;
+  const externalId = resolveExternalId(payload) ?? email;
+  const status = statusFromGreenn(resolveStatus(payload) ?? undefined);
+  const currentPeriodEnd = resolveNextBilling(payload);
+  const planName = resolvePlanName(payload);
 
   const admin = createAdminClient();
-  const nome = payload.data?.buyer?.name ?? email.split("@")[0];
+  const nome = resolveName(payload) ?? email.split("@")[0];
 
   const existingUser = (await admin.auth.admin.listUsers()).data.users.find(
     (u) => u.email?.toLowerCase() === email,
