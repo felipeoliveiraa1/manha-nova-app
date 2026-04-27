@@ -20,6 +20,8 @@ export async function loginAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const next = String(formData.get("next") ?? "/home");
 
+  console.log("[login] attempt", { email, passwordLength: password.length, next });
+
   if (!hasSupabase()) {
     redirect(`/login?error=${encodeURIComponent(NOT_CONFIGURED_MSG)}`);
   }
@@ -30,9 +32,15 @@ export async function loginAction(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
+    console.warn("[login] signInWithPassword error:", {
+      email,
+      code: error.code,
+      message: error.message,
+    });
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
+  console.log("[login] success, redirecting to", next);
   redirect(next);
 }
 
