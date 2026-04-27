@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { esqueciSenhaAction } from "@/lib/auth/actions";
 
 export default async function EsqueciSenhaPage({
@@ -47,9 +47,9 @@ export default async function EsqueciSenhaPage({
           <Label htmlFor="email">Email</Label>
           <Input id="email" name="email" type="email" required autoComplete="email" />
         </div>
-        <Button type="submit" size="lg" className="mt-2">
+        <SubmitButton size="lg" className="mt-2" pendingLabel="Enviando...">
           Enviar link
-        </Button>
+        </SubmitButton>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">

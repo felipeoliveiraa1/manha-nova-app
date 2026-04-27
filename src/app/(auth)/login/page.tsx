@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { loginAction } from "@/lib/auth/actions";
 
 const CHECKOUT_URL = process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "#";
@@ -49,9 +49,9 @@ export default async function LoginPage({
             autoComplete="current-password"
           />
         </div>
-        <Button type="submit" size="lg" className="mt-2">
+        <SubmitButton size="lg" className="mt-2" pendingLabel="Entrando...">
           Entrar
-        </Button>
+        </SubmitButton>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">

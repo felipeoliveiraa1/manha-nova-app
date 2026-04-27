@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { novaSenhaAction } from "@/lib/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -72,9 +72,9 @@ export default async function NovaSenhaPage({
             autoComplete="new-password"
           />
         </div>
-        <Button type="submit" size="lg" className="mt-2">
+        <SubmitButton size="lg" className="mt-2" pendingLabel="Salvando...">
           Salvar senha
-        </Button>
+        </SubmitButton>
       </form>
     </div>
   );
