@@ -164,8 +164,17 @@ function statusFromGreenn(
   s: string | undefined,
 ): "active" | "refunded" | "canceled" | "past_due" | "expired" {
   const v = (s ?? "").toLowerCase().trim();
-  // Variantes que indicam pagamento aprovado / assinatura ativa
+
+  // Eventos Greenn (contractPaid, saleApproved, etc) + variantes genericas
   const ATIVOS = [
+    // Greenn
+    "contractpaid",
+    "contracttrialing",
+    "salepaid",
+    "saleapproved",
+    "salecompleted",
+    "subscriptioncreated",
+    // Genericos
     "paid",
     "approved",
     "active",
@@ -173,12 +182,6 @@ function statusFromGreenn(
     "complete",
     "success",
     "succeeded",
-    "purchase_approved",
-    "purchase.approved",
-    "purchase_completed",
-    "purchase.completed",
-    "subscription.active",
-    "subscription_active",
     "trialing",
     "trial",
     "pago",
@@ -187,28 +190,53 @@ function statusFromGreenn(
     "concluído",
   ];
   if (ATIVOS.includes(v)) return "active";
-  if (
-    v === "refunded" ||
-    v === "refund" ||
-    v === "estornado" ||
-    v === "reembolsado"
-  )
-    return "refunded";
-  if (
-    v === "canceled" ||
-    v === "cancelled" ||
-    v === "cancelado" ||
-    v === "subscription.canceled" ||
-    v === "subscription_canceled"
-  )
-    return "canceled";
-  if (
-    v === "overdue" ||
-    v === "past_due" ||
-    v === "atrasado" ||
-    v === "vencido"
-  )
-    return "past_due";
+
+  const REFUNDED = [
+    "salerefunded",
+    "salechargedback",
+    "refunded",
+    "refund",
+    "chargeback",
+    "estornado",
+    "reembolsado",
+  ];
+  if (REFUNDED.includes(v)) return "refunded";
+
+  const CANCELED = [
+    "contractcanceled",
+    "contractcancelled",
+    "salecanceled",
+    "salecancelled",
+    "subscriptioncanceled",
+    "canceled",
+    "cancelled",
+    "cancelado",
+  ];
+  if (CANCELED.includes(v)) return "canceled";
+
+  const PAST_DUE = [
+    "contractunpaid",
+    "contractpendingpayment",
+    "salerefused",
+    "overdue",
+    "past_due",
+    "pastdue",
+    "pending",
+    "atrasado",
+    "vencido",
+  ];
+  if (PAST_DUE.includes(v)) return "past_due";
+
+  const EXPIRED = [
+    "contractended",
+    "saleexpired",
+    "subscriptionended",
+    "expired",
+    "expirado",
+    "terminado",
+  ];
+  if (EXPIRED.includes(v)) return "expired";
+
   return "expired";
 }
 
