@@ -58,8 +58,17 @@ export async function TopHeader() {
 }
 
 function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Bom dia";
-  if (h < 18) return "Boa tarde";
+  // Servidor Vercel roda em UTC; pega hora local de SP pra saudacao certa.
+  const horaSP = parseInt(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Sao_Paulo",
+      hour: "numeric",
+      hour12: false,
+    }).format(new Date()),
+    10,
+  );
+  if (horaSP < 5) return "Boa madrugada";
+  if (horaSP < 12) return "Bom dia";
+  if (horaSP < 18) return "Boa tarde";
   return "Boa noite";
 }

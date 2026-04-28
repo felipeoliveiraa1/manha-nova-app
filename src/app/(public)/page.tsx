@@ -72,10 +72,9 @@ export default function LandingPage() {
               <span className="text-primary">Instagram</span>.
             </h1>
             <p className="mt-6 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Manhã Nova é o app que substitui o scroll matinal por{" "}
+              Troque as redes sociais por{" "}
               <strong className="text-foreground">5 minutos com Deus</strong> —
-              devocional, oração, missão do dia e a Bíblia completa. Menos
-              ruído, mais propósito.
+              devocional, oração, missão do dia e a Bíblia completa.
             </p>
             <div className="mt-8 flex flex-col items-start gap-3">
               <a
