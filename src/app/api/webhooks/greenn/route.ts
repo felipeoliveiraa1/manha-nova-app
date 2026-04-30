@@ -255,6 +255,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid token" }, { status: 401 });
   }
 
+  // Log payload bruto (sem tokens) pra debug — util pra mandar pro suporte
+  // da Greenn e provar que contractPaid nao chega em vendas reais.
+  console.log(
+    "[greenn] payload bruto:",
+    JSON.stringify(sanitizeForLog(payload)).slice(0, 4000),
+  );
+
   const email = resolveEmail(payload);
   if (!email) {
     console.warn(
