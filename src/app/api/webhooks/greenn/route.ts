@@ -71,7 +71,14 @@ function resolveName(p: GreennPayload): string | null {
 }
 
 function resolveStatus(p: GreennPayload): string | null {
+  // Greenn usa SEMPRE event="contractUpdated" pra ciclo de vida da assinatura
+  // e poe o status real em currentStatus (top-level). Por isso priorizamos
+  // currentStatus antes de event.
   return pickString(p, [
+    "currentStatus",
+    "data.currentStatus",
+    "contract.status",
+    "currentSale.status",
     "data.subscription.status",
     "subscription.status",
     "data.status",
@@ -82,6 +89,10 @@ function resolveStatus(p: GreennPayload): string | null {
 
 function resolveExternalId(p: GreennPayload): string | null {
   return pickString(p, [
+    "contract.id",
+    "data.contract.id",
+    "currentSale.id",
+    "data.currentSale.id",
     "data.subscription.id",
     "subscription.id",
     "data.transaction_id",
@@ -99,11 +110,14 @@ function resolvePlanName(p: GreennPayload): string | null {
     "plan.name",
     "data.offer.name",
     "offer.name",
+    "oferta",
   ]);
 }
 
 function resolveNextBilling(p: GreennPayload): string | null {
   return pickString(p, [
+    "contract.current_period_end",
+    "data.contract.current_period_end",
     "data.subscription.next_billing_at",
     "subscription.next_billing_at",
     "data.next_billing_at",
@@ -217,6 +231,7 @@ function statusFromGreenn(
   const PAST_DUE = [
     "contractunpaid",
     "contractpendingpayment",
+    "pending_payment",
     "salerefused",
     "overdue",
     "past_due",
