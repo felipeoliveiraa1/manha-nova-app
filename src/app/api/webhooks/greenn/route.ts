@@ -273,6 +273,28 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   const nome = resolveName(payload) ?? email.split("@")[0];
 
+  // Se nao for venda confirmada (active), so atualiza subscription se ja existir.
+  // Evita poluir o banco com linhas de PIX gerado / contratos atualizados que
+  // nunca viraram pagamento. Pra rastrear lifecycle pos-compra (canceled,
+  // refunded, past_due) ainda funciona — a subscription ja existe nesses casos.
+  if (status !== "active") {
+    const { data: existing } = await admin
+      .from("subscriptions")
+      .select("id")
+      .eq("provider", "greenn")
+      .eq("external_id", externalId)
+      .maybeSingle();
+    if (!existing) {
+      console.log("[greenn] ignorando — sem subscription previa e status nao-active", {
+        email,
+        rawStatus,
+        statusMapeado: status,
+        event: payload.event,
+      });
+      return NextResponse.json({ ok: true, skipped: "no-prior-subscription" });
+    }
+  }
+
   const existingUser = (await admin.auth.admin.listUsers()).data.users.find(
     (u) => u.email?.toLowerCase() === email,
   );
