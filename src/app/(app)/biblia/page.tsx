@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listBooks } from "@/lib/repo/biblia";
 import { versiculoDoDia } from "@/lib/seed/versiculos";
 import { parseRef } from "@/lib/seed/bible-books";
-import { Search, Calendar, BookOpen } from "lucide-react";
+import { Search, Calendar, BookOpen, Download } from "lucide-react";
 
 export const revalidate = 86400;
 
@@ -33,13 +33,23 @@ export default async function BibliaPage() {
           &ldquo;{versiculo.texto}&rdquo;
         </p>
         <p className="mb-4 text-xs text-muted-foreground">{versiculo.ref}</p>
-        <Link
-          href={meditarHref}
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/15"
-        >
-          <BookOpen className="h-3.5 w-3.5" />
-          Ler no contexto
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={meditarHref}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/15"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Ler no contexto
+          </Link>
+          <a
+            href={`/api/og/versiculo?texto=${encodeURIComponent(versiculo.texto)}&ref=${encodeURIComponent(versiculo.ref)}`}
+            download={`versiculo-${versiculo.ref.replace(/[\s:]+/g, "-")}.png`}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Baixar imagem
+          </a>
+        </div>
       </section>
 
       <div className="mb-6 flex gap-2">
