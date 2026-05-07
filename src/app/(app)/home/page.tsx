@@ -14,10 +14,10 @@ import { OracaoForm } from "@/components/features/oracao-form";
 import { MissionConcluirButton } from "@/components/features/mission-concluir-button";
 import { ReflexaoForm } from "@/components/features/reflexao-form";
 import { IniciarDiaCta } from "@/components/features/iniciar-dia-cta";
-import { requireActiveSubscription } from "@/lib/auth/guards";
+import { requireAuth } from "@/lib/auth/guards";
 
 export default async function HomePage() {
-  await requireActiveSubscription();
+  await requireAuth();
   const user = await getCurrentUser();
   const [versiculo, devocional, missao, missoesHoje] = await Promise.all([
     Promise.resolve(versiculoDoDia()),

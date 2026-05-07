@@ -1,9 +1,9 @@
 import { IgrejasList } from "@/components/features/igrejas-list";
 import { listIgrejas } from "@/lib/repo/igrejas";
-import { requireActiveSubscription } from "@/lib/auth/guards";
+import { requireAuth } from "@/lib/auth/guards";
 
 export default async function IgrejasPage() {
-  await requireActiveSubscription();
+  await requireAuth();
   const igrejas = await listIgrejas();
 
   return (

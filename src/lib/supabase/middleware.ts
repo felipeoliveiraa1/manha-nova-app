@@ -43,8 +43,10 @@ export async function updateSession(request: NextRequest) {
   // e precisa ficar la pra definir a senha.
   const isAuthRoute =
     pathname.startsWith("/login") ||
-    pathname.startsWith("/esqueci-senha");
-  // /biblia e /explorar sao conteudo publico (cacheaveis, sem auth na borda).
+    pathname.startsWith("/esqueci-senha") ||
+    pathname.startsWith("/cadastro");
+  // /biblia, /explorar e /upgrade sao conteudo publico ou apenas requer login
+  // (gating fino por tier eh feito nas pages via requireAuth/requirePremium).
   const isProtected =
     pathname.startsWith("/home") ||
     pathname.startsWith("/devocionais") ||
@@ -59,6 +61,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/perfil") ||
     pathname.startsWith("/configuracoes") ||
     pathname.startsWith("/conquistas") ||
+    pathname.startsWith("/upgrade") ||
     pathname.startsWith("/admin");
 
   if (!user && isProtected) {
@@ -73,56 +76,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Gating por assinatura: rotas pagas exigem subscription ativa.
-  // Usuario pode acessar /perfil, /assinatura-expirada e /configuracoes mesmo sem sub.
-  const needsSubscription =
-    user &&
-    isProtected &&
-    !pathname.startsWith("/perfil") &&
-    !pathname.startsWith("/assinatura-expirada") &&
-    !pathname.startsWith("/configuracoes") &&
-    !pathname.startsWith("/admin");
-
-  if (needsSubscription) {
-    // Admin bypassa o gate
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-    const isAdminUser = (profile as { role?: string } | null)?.role === "admin";
-
-    if (!isAdminUser) {
-      // Query robusta: so inclui filter de email se ele existir
-      const filter = user.email
-        ? `user_id.eq.${user.id},email.eq.${user.email}`
-        : `user_id.eq.${user.id}`;
-
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("status,current_period_end")
-        .or(filter)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const subRow = sub as
-        | { status: string; current_period_end: string | null }
-        | null;
-
-      const ativa =
-        !!subRow &&
-        (subRow.status === "active" || subRow.status === "trialing") &&
-        (!subRow.current_period_end ||
-          new Date(subRow.current_period_end) > new Date());
-
-      if (!ativa) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/assinatura-expirada";
-        return NextResponse.redirect(url);
-      }
-    }
-  }
+  // Gating por subscription agora eh por-rota via requirePremium() nas pages.
+  // Middleware so garante que tem login pras rotas protegidas.
 
   return supabaseResponse;
 }

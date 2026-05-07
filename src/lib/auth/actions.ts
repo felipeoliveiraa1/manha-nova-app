@@ -15,6 +15,45 @@ function hasSupabase() {
 const NOT_CONFIGURED_MSG =
   "Modo preview: Supabase ainda não está configurado.";
 
+export async function signupAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  const nome = String(formData.get("nome") ?? "").trim();
+
+  if (!hasSupabase()) {
+    redirect(`/cadastro?error=${encodeURIComponent(NOT_CONFIGURED_MSG)}`);
+  }
+  if (!email || !password || !nome) {
+    redirect(
+      `/cadastro?error=${encodeURIComponent("Preencha nome, email e senha.")}`,
+    );
+  }
+  if (password.length < 8) {
+    redirect(
+      `/cadastro?error=${encodeURIComponent("Senha precisa de no mínimo 8 caracteres.")}`,
+    );
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { nome },
+    },
+  });
+  if (error) {
+    const msg =
+      error.message.toLowerCase().includes("already") ||
+      error.message.toLowerCase().includes("registered")
+        ? "Esse email já tem conta. Faça login ou recupere a senha."
+        : error.message;
+    redirect(`/cadastro?error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect("/home");
+}
+
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");

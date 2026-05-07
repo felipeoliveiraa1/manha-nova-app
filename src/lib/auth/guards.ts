@@ -35,26 +35,60 @@ const getSubscriptionActive = cache(async (user: CurrentUser): Promise<boolean> 
 });
 
 /**
- * Guard server-side: exige assinatura ativa ou role=admin.
- * Se nao tiver, redireciona pra /assinatura-expirada.
+ * Apenas exige login. Nao exige pagar — qualquer user cadastrado passa.
+ * Se nao tiver sessao, redireciona pra /login.
  *
- * Uso nas pages:
- *   const user = await requireActiveSubscription();
- *
- * Eh defense-in-depth: mesmo que o middleware falhe, a pagina em si bloqueia.
- * Admin e modo preview passam direto.
+ * Uso pra rotas FREE (qualquer cadastrado): home, devocionais (texto),
+ * missoes, biblia (notas/highlights), diario, oracao, etc.
  */
-export async function requireActiveSubscription(): Promise<CurrentUser> {
+export async function requireAuth(): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  const ativa = await getSubscriptionActive(user);
-  if (!ativa) redirect("/assinatura-expirada");
+  if (user.isPreview) {
+    // Sem Supabase configurado ou sem sessao real — redireciona pra login
+    redirect("/login");
+  }
   return user;
 }
 
 /**
- * Verifica assinatura sem redirecionar (para UIs que querem saber o status).
+ * Exige assinatura premium ativa. Se nao tiver, redireciona pra /upgrade.
+ * Admin e modo preview passam direto.
+ *
+ * Uso pra rotas PREMIUM (Yan): audio, webinars, estudos teologicos.
+ */
+export async function requirePremium(): Promise<CurrentUser> {
+  const user = await getCurrentUser();
+  const ativa = await getSubscriptionActive(user);
+  if (!ativa) redirect("/upgrade");
+  return user;
+}
+
+/**
+ * @deprecated Use requirePremium() (mesma logica, redirect novo).
+ * Mantido pra compat com rotas que ainda nao migraram.
+ */
+export async function requireActiveSubscription(): Promise<CurrentUser> {
+  return requirePremium();
+}
+
+/**
+ * Verifica assinatura sem redirecionar (pra UIs que querem saber o status).
  */
 export async function hasActiveSubscription(): Promise<boolean> {
   const user = await getCurrentUser();
   return getSubscriptionActive(user);
 }
+
+/**
+ * Tier do user pra UI: 'free' ou 'premium'.
+ * Derivado da subscription — sem coluna nova no DB.
+ */
+export const getUserTier = cache(
+  async (): Promise<"free" | "premium" | "guest"> => {
+    const user = await getCurrentUser();
+    if (user.isPreview) return "guest";
+    if (user.profile.role === "admin") return "premium";
+    const ativa = await getSubscriptionActive(user);
+    return ativa ? "premium" : "free";
+  },
+);

@@ -2,10 +2,10 @@ import Link from "next/link";
 import { listTrilhas } from "@/lib/repo/trilhas";
 import { Card, CardContent } from "@/components/ui/card";
 import { Compass } from "lucide-react";
-import { requireActiveSubscription } from "@/lib/auth/guards";
+import { requireAuth } from "@/lib/auth/guards";
 
 export default async function TrilhasPage() {
-  await requireActiveSubscription();
+  await requireAuth();
   const trilhas = await listTrilhas();
 
   return (

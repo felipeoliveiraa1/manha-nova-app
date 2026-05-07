@@ -89,15 +89,23 @@ export default function LandingPage() {
                 href={CHECKOUT_URL}
                 className={buttonVariants({ size: "lg" })}
               >
-                Assinar por R$29,90/mês
+                Assinar Premium por R$29,90/mês
                 <ArrowRight className="h-4 w-4" />
               </a>
-              <Link
-                href="/biblia"
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
-              >
-                Ou explore a Bíblia grátis →
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href="/cadastro"
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  Criar conta grátis
+                </Link>
+                <Link
+                  href="/biblia"
+                  className={buttonVariants({ variant: "ghost", size: "sm" })}
+                >
+                  Ou só ler a Bíblia →
+                </Link>
+              </div>
               <p className="text-xs text-muted-foreground">
                 7 dias de garantia · Cancele quando quiser · Pagamento seguro
               </p>
