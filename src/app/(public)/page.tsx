@@ -92,6 +92,12 @@ export default function LandingPage() {
                 Assinar por R$29,90/mês
                 <ArrowRight className="h-4 w-4" />
               </a>
+              <Link
+                href="/biblia"
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
+                Ou explore a Bíblia grátis →
+              </Link>
               <p className="text-xs text-muted-foreground">
                 7 dias de garantia · Cancele quando quiser · Pagamento seguro
               </p>

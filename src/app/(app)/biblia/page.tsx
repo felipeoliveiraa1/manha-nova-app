@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { listBooks } from "@/lib/repo/biblia";
-import { Search, Calendar } from "lucide-react";
+import { versiculoDoDia } from "@/lib/seed/versiculos";
+import { parseRef } from "@/lib/seed/bible-books";
+import { Search, Calendar, BookOpen } from "lucide-react";
 
 export const revalidate = 86400;
 
@@ -9,12 +11,36 @@ export default async function BibliaPage() {
   const at = books.filter((b) => b.testamento === "AT");
   const nt = books.filter((b) => b.testamento === "NT");
 
+  const versiculo = versiculoDoDia();
+  const refParsed = parseRef(versiculo.ref);
+  const meditarHref = refParsed
+    ? `/biblia/${refParsed.abbrev}/${refParsed.capitulo}#v${refParsed.versiculo}`
+    : "/biblia";
+
   return (
     <div className="px-4 pt-6 pb-8">
       <h1 className="mb-1 font-serif text-2xl font-semibold">Bíblia</h1>
       <p className="mb-5 text-sm text-muted-foreground">
         Almeida Corrigida Fiel (ACF)
       </p>
+
+      {/* Versículo do dia — público */}
+      <section className="mb-6 rounded-2xl border border-primary/20 bg-linear-to-br from-card to-primary/5 p-6">
+        <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-primary">
+          Versículo do dia
+        </p>
+        <p className="mb-3 font-serif text-lg leading-snug">
+          &ldquo;{versiculo.texto}&rdquo;
+        </p>
+        <p className="mb-4 text-xs text-muted-foreground">{versiculo.ref}</p>
+        <Link
+          href={meditarHref}
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/15"
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          Ler no contexto
+        </Link>
+      </section>
 
       <div className="mb-6 flex gap-2">
         <Link
