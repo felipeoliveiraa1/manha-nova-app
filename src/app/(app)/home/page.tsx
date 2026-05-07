@@ -14,6 +14,7 @@ import { OracaoForm } from "@/components/features/oracao-form";
 import { MissionConcluirButton } from "@/components/features/mission-concluir-button";
 import { ReflexaoForm } from "@/components/features/reflexao-form";
 import { IniciarDiaCta } from "@/components/features/iniciar-dia-cta";
+import { UpgradeBanner } from "@/components/features/upgrade-banner";
 import { requireAuth } from "@/lib/auth/guards";
 
 export default async function HomePage() {
@@ -37,6 +38,9 @@ export default async function HomePage() {
       <TopHeader />
 
       <main className="flex flex-col gap-4 px-4 pb-8">
+        {/* Banner Upgrade — só pra users free */}
+        <UpgradeBanner />
+
         {/* Bloco 1 — Versículo do dia */}
         <Card className="border-primary/20 bg-linear-to-br from-card to-primary/5">
           <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
