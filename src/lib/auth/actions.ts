@@ -35,40 +35,37 @@ export async function signupAction(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
+  const { error: signUpErr } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { nome },
     },
   });
-  if (error) {
+  if (signUpErr) {
     const msg =
-      error.message.toLowerCase().includes("already") ||
-      error.message.toLowerCase().includes("registered")
+      signUpErr.message.toLowerCase().includes("already") ||
+      signUpErr.message.toLowerCase().includes("registered")
         ? "Esse email já tem conta. Faça login ou recupere a senha."
-        : error.message;
+        : signUpErr.message;
+    console.warn("[signup] signUp falhou:", signUpErr.message);
     redirect(`/cadastro?error=${encodeURIComponent(msg)}`);
   }
 
-  // Caso 1: signUp ja criou sessao (Supabase com Confirm email OFF)
-  if (data.session) {
-    redirect("/home");
+  // Sempre roda signInWithPassword pos-signUp pra garantir cookie de sessao
+  // setado. Se Confirm email ON, signIn falha e mandamos pro confirme.
+  const { data: signInData, error: signInErr } =
+    await supabase.auth.signInWithPassword({ email, password });
+  if (signInErr) {
+    console.warn("[signup] signIn pos-signUp falhou:", signInErr.message);
+    redirect(`/cadastro?confirme=${encodeURIComponent(email)}`);
   }
-
-  // Caso 2: signUp nao retornou session — pode ser que o Confirm email
-  // esta OFF mas o supabase-js nao retornou session por algum motivo.
-  // Tenta signInWithPassword: se passar, ja loga; se falhar, eh confirm ON.
-  const { error: signInErr } = await supabase.auth.signInWithPassword({
+  console.log("[signup] sucesso", {
     email,
-    password,
+    hasSession: !!signInData.session,
   });
-  if (!signInErr) {
-    redirect("/home");
-  }
 
-  // Caso 3: signIn falhou tambem — Confirm email esta ON. Pede pra confirmar.
-  redirect(`/cadastro?confirme=${encodeURIComponent(email)}`);
+  redirect("/home");
 }
 
 export async function loginAction(formData: FormData) {
