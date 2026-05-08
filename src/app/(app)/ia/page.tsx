@@ -1,4 +1,5 @@
 import { AiChat } from "@/components/features/ai-chat";
+import { AuthGate } from "@/components/features/auth-gate";
 
 export default async function IaPage() {
   return (
@@ -15,7 +16,9 @@ export default async function IaPage() {
         </p>
       </header>
 
-      <AiChat />
+      <AuthGate feature="IA Espiritual">
+        <AiChat />
+      </AuthGate>
     </div>
   );
 }
