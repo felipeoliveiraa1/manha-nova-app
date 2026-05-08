@@ -147,14 +147,23 @@ export default async function PerfilPage() {
                   : "Nenhuma assinatura ativa"}
             </p>
           </div>
-          <a
-            href="https://app.greenn.club/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary hover:underline"
-          >
-            Gerenciar
-          </a>
+          {sub ? (
+            <a
+              href="https://app.greenn.club/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline"
+            >
+              Gerenciar
+            </a>
+          ) : (
+            <a
+              href={process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "/upgrade"}
+              className="text-xs text-primary hover:underline"
+            >
+              Assinar
+            </a>
+          )}
         </CardContent>
       </Card>
 
