@@ -38,15 +38,28 @@ const PREVIEW_USER: CurrentUser = {
  * nao esta configurado. Permite que todas as paginas renderizem sem crash.
  */
 export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
-  if (!hasSupabaseEnv()) return PREVIEW_USER;
+  if (!hasSupabaseEnv()) {
+    console.log("[auth] getCurrentUser: hasSupabaseEnv=false → PREVIEW");
+    return PREVIEW_USER;
+  }
 
   const supabase = await createClientOrNull();
-  if (!supabase) return PREVIEW_USER;
+  if (!supabase) {
+    console.log("[auth] getCurrentUser: createClientOrNull=null → PREVIEW");
+    return PREVIEW_USER;
+  }
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
-  if (!user) return PREVIEW_USER;
+  if (error) {
+    console.warn("[auth] getCurrentUser: getUser error:", error.message);
+  }
+  if (!user) {
+    console.log("[auth] getCurrentUser: user=null → PREVIEW");
+    return PREVIEW_USER;
+  }
 
   const { data } = await supabase
     .from("profiles")
