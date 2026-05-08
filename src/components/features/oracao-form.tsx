@@ -4,11 +4,13 @@ import { useState, useRef, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Trash2, Play, Pause } from "lucide-react";
 import { salvarOracaoAction } from "@/lib/auth/actions-app";
+import { useActionHandler } from "@/lib/auth/use-action-handler";
 import { toast } from "sonner";
 
 export function OracaoForm() {
   const [texto, setTexto] = useState("");
   const [pending, startTransition] = useTransition();
+  const handle = useActionHandler();
 
   // Estado de gravacao
   const [recording, setRecording] = useState(false);
@@ -88,14 +90,9 @@ export function OracaoForm() {
     // — salva só o texto. Upload virá quando houver Storage bucket configurado.
     startTransition(async () => {
       const res = await salvarOracaoAction(fd);
-      if (res.ok) {
-        toast.success(
-          res.preview ? "Oração salva (preview)" : "Oração salva",
-        );
+      if (handle(res, "Oração salva")) {
         setTexto("");
         descartarAudio();
-      } else {
-        toast.error(res.error ?? "Erro ao salvar.");
       }
     });
   }

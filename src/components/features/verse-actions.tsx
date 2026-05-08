@@ -103,7 +103,9 @@ export function VerseItem({
         setNotes([...notes, { id: crypto.randomUUID(), texto: noteText }]);
         setNoteText("");
         setWriting(false);
-        toast.success(res.preview ? "Nota salva (preview)" : "Nota salva");
+        toast.success("Nota salva");
+      } else if (res.needsAuth) {
+        toast.info("Crie sua conta grátis pra salvar suas anotações.");
       } else {
         toast.error(res.error ?? "Erro.");
       }

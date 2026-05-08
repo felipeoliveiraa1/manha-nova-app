@@ -50,8 +50,11 @@ export function DiarioForm() {
     startTransition(async () => {
       const res = await salvarDiarioAction(fd);
       if (res.ok) {
-        toast.success(res.preview ? "Salvo (modo preview)" : "Entrada salva");
+        toast.success("Entrada salva");
         router.push("/diario");
+      } else if (res.needsAuth) {
+        toast.info("Crie sua conta grátis pra salvar seu diário.");
+        router.push("/cadastro");
       } else {
         toast.error(res.error ?? "Erro ao salvar.");
       }

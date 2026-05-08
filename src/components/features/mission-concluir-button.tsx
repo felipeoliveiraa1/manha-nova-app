@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { concluirMissaoAction } from "@/lib/auth/actions-app";
-import { toast } from "sonner";
+import { useActionHandler } from "@/lib/auth/use-action-handler";
 import { cn } from "@/lib/utils";
 
 export function MissionConcluirButton({
@@ -20,6 +20,7 @@ export function MissionConcluirButton({
 }) {
   const [done, setDone] = useState(initiallyDone);
   const [pending, startTransition] = useTransition();
+  const handle = useActionHandler();
 
   function onClick() {
     if (done || pending) return;
@@ -27,15 +28,8 @@ export function MissionConcluirButton({
     fd.set("missao_id", missaoId);
     startTransition(async () => {
       const res = await concluirMissaoAction(fd);
-      if (res.ok) {
+      if (handle(res, "Missão concluída! +10 pontos")) {
         setDone(true);
-        toast.success(
-          res.preview
-            ? "Missão concluída (modo preview)"
-            : "Missão concluída! +10 pontos",
-        );
-      } else {
-        toast.error(res.error ?? "Erro ao concluir.");
       }
     });
   }

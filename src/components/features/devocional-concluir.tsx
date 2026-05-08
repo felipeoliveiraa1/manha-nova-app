@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { concluirDevocionalAction } from "@/lib/auth/actions-app";
-import { toast } from "sonner";
+import { useActionHandler } from "@/lib/auth/use-action-handler";
 
 export function DevocionalConcluir({
   devocionalSlug,
@@ -17,6 +17,7 @@ export function DevocionalConcluir({
   anotacaoSalva?: string;
 }) {
   const router = useRouter();
+  const handle = useActionHandler();
   const [done, setDone] = useState(jaConcluido);
   const [anotacao, setAnotacao] = useState(anotacaoSalva);
   const [pending, startTransition] = useTransition();
@@ -27,14 +28,9 @@ export function DevocionalConcluir({
     if (anotacao) fd.set("anotacao", anotacao);
     startTransition(async () => {
       const res = await concluirDevocionalAction(fd);
-      if (res.ok) {
+      if (handle(res, "Devocional concluído! +15 pontos")) {
         setDone(true);
-        toast.success(
-          res.preview ? "Concluído (modo preview)" : "Devocional concluído! +15 pontos",
-        );
         router.refresh();
-      } else {
-        toast.error(res.error ?? "Erro.");
       }
     });
   }

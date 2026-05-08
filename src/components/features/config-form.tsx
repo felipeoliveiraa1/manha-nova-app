@@ -53,9 +53,9 @@ export function ConfigForm({
     startTransition(async () => {
       const res = await salvarConfigAction(fd);
       if (res.ok) {
-        toast.success(
-          res.preview ? "Salvo (preview — não persiste)" : "Configurações salvas",
-        );
+        toast.success("Configurações salvas");
+      } else if (res.needsAuth) {
+        toast.info("Faça login pra salvar suas configurações.");
       } else {
         toast.error(res.error ?? "Erro ao salvar.");
       }

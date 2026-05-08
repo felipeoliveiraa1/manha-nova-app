@@ -11,7 +11,7 @@ export async function salvarReflexaoAction(formData: FormData) {
   if (!texto) return { ok: false, error: "Escreva sua reflexao." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -42,7 +42,7 @@ export async function salvarReflexaoAction(formData: FormData) {
 
 export async function iniciarDiaAction() {
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -57,13 +57,7 @@ export async function salvarOracaoAction(formData: FormData) {
   if (!texto) return { ok: false, error: "Escreva sua oração." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) {
-    return {
-      ok: true,
-      preview: true,
-      message: "Oração salva (modo preview — não persiste).",
-    };
-  }
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -83,9 +77,7 @@ export async function concluirMissaoAction(formData: FormData) {
   if (!missaoId) return { ok: false, error: "Missão não informada." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) {
-    return { ok: true, preview: true };
-  }
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -112,7 +104,7 @@ export async function concluirDevocionalAction(formData: FormData) {
   if (!slug) return { ok: false, error: "Devocional não informado." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -158,7 +150,7 @@ export async function salvarDiarioAction(formData: FormData) {
   if (!texto) return { ok: false, error: "Escreva sua reflexão." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -181,7 +173,7 @@ export async function toggleHighlightAction(formData: FormData) {
   if (!verseId) return { ok: false, error: "Versículo não informado." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -208,7 +200,7 @@ export async function toggleBookmarkAction(formData: FormData) {
   if (!verseId) return { ok: false, error: "Versículo não informado." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -239,7 +231,7 @@ export async function salvarNotaAction(formData: FormData) {
   if (!verseId || !texto) return { ok: false, error: "Faltam dados." };
 
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };
@@ -258,7 +250,7 @@ export async function salvarConfigAction(formData: FormData) {
   const versao = String(formData.get("versao") ?? "ACF");
 
   const user = await getCurrentUser();
-  if (user.isPreview) return { ok: true, preview: true };
+  if (user.isPreview) return { ok: false, needsAuth: true };
 
   const supabase = await createClientOrNull();
   if (!supabase) return { ok: false, error: "Supabase indisponível." };

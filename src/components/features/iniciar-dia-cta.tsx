@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Sparkles } from "lucide-react";
 import { iniciarDiaAction } from "@/lib/auth/actions-app";
-import { toast } from "sonner";
+import { useActionHandler } from "@/lib/auth/use-action-handler";
 import { cn } from "@/lib/utils";
 
 export function IniciarDiaCta({
@@ -13,6 +13,7 @@ export function IniciarDiaCta({
   jaIniciadoHoje?: boolean;
 }) {
   const router = useRouter();
+  const handle = useActionHandler();
   const [pending, startTransition] = useTransition();
   const [feito, setFeito] = useState(jaIniciadoHoje);
 
@@ -20,14 +21,9 @@ export function IniciarDiaCta({
     if (feito) return;
     startTransition(async () => {
       const res = await iniciarDiaAction();
-      if (res.ok) {
-        toast.success(
-          res.preview ? "Dia iniciado (preview)" : "Bom dia começado! +5 pontos",
-        );
+      if (handle(res, "Bom dia começado! +5 pontos")) {
         setFeito(true);
         router.refresh();
-      } else {
-        toast.error(res.error ?? "Erro.");
       }
     });
   }

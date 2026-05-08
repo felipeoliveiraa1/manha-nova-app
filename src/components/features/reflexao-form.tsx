@@ -3,11 +3,12 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { salvarReflexaoAction } from "@/lib/auth/actions-app";
-import { toast } from "sonner";
+import { useActionHandler } from "@/lib/auth/use-action-handler";
 
 export function ReflexaoForm({ pergunta }: { pergunta: string }) {
   const [texto, setTexto] = useState("");
   const [pending, startTransition] = useTransition();
+  const handle = useActionHandler();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -17,11 +18,8 @@ export function ReflexaoForm({ pergunta }: { pergunta: string }) {
     fd.set("pergunta", pergunta);
     startTransition(async () => {
       const res = await salvarReflexaoAction(fd);
-      if (res.ok) {
-        toast.success(res.preview ? "Salvo (preview)" : "Reflexão salva no diário");
+      if (handle(res, "Reflexão salva no diário")) {
         setTexto("");
-      } else {
-        toast.error(res.error ?? "Erro ao salvar.");
       }
     });
   }
