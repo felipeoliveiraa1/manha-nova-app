@@ -40,12 +40,18 @@ export default function LandingPage() {
             <Sunrise className="h-4 w-4 text-primary" />
             Manhã Nova
           </span>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3">
+            <Link
+              href="/home"
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              Entrar no app
+            </Link>
             <Link
               href="/login"
-              className="text-sm text-muted-foreground transition hover:text-foreground"
+              className="hidden text-sm text-muted-foreground transition hover:text-foreground sm:inline"
             >
-              Entrar
+              Já tenho conta
             </Link>
             <a
               href={CHECKOUT_URL}
