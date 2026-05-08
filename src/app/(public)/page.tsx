@@ -37,6 +37,13 @@ export default function LandingPage() {
           </span>
           <nav className="flex items-center gap-3">
             <Link
+              href="/home"
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              <span className="hidden sm:inline">Entrar como convidado</span>
+              <span className="sm:hidden">Convidado</span>
+            </Link>
+            <Link
               href="/login"
               className="hidden text-sm text-muted-foreground transition hover:text-foreground sm:inline"
             >
@@ -46,7 +53,7 @@ export default function LandingPage() {
               href="/cadastro"
               className={buttonVariants({ size: "sm" })}
             >
-              Criar conta grátis
+              Criar conta
             </Link>
           </nav>
         </div>
