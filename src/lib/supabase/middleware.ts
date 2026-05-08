@@ -46,12 +46,10 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/esqueci-senha") ||
     pathname.startsWith("/cadastro");
   // App em modo guest: a maioria das rotas eh livre pra explorar sem login.
-  // So bloqueia rotas que so fazem sentido pra um user logado (perfil, config,
-  // admin, upgrade) ou que sao premium-restritas (audio, no futuro webinarios).
+  // So bloqueia rotas que so fazem sentido pra user logado especifico
+  // (configuracoes, admin) — /perfil e /upgrade renderizam UI propria pra guest.
   const isProtected =
-    pathname.startsWith("/perfil") ||
     pathname.startsWith("/configuracoes") ||
-    pathname.startsWith("/upgrade") ||
     pathname.startsWith("/admin");
 
   if (!user && isProtected) {

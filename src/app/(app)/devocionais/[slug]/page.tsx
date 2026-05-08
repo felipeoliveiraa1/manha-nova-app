@@ -5,6 +5,7 @@ import { createClientOrNull } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth/user";
 import { Card, CardContent } from "@/components/ui/card";
 import { DevocionalConcluir } from "@/components/features/devocional-concluir";
+import { AuthGate } from "@/components/features/auth-gate";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export default async function DevocionalPage({
@@ -81,24 +82,26 @@ export default async function DevocionalPage({
         </CardContent>
       </Card>
 
-      <Section titulo="Reflexão" texto={devocional.explicacao} />
-      <Section titulo="Aplicação prática" texto={devocional.aplicacao} />
-      <Section titulo="Oração" texto={devocional.oracao} />
+      <AuthGate feature={devocional.titulo}>
+        <Section titulo="Reflexão" texto={devocional.explicacao} />
+        <Section titulo="Aplicação prática" texto={devocional.aplicacao} />
+        <Section titulo="Oração" texto={devocional.oracao} />
 
-      {devocional.pergunta && (
-        <section className="mb-6">
-          <h2 className="mb-2 text-[11px] uppercase tracking-wider text-primary">
-            Para refletir
-          </h2>
-          <p className="font-serif text-base">{devocional.pergunta}</p>
-        </section>
-      )}
+        {devocional.pergunta && (
+          <section className="mb-6">
+            <h2 className="mb-2 text-[11px] uppercase tracking-wider text-primary">
+              Para refletir
+            </h2>
+            <p className="font-serif text-base">{devocional.pergunta}</p>
+          </section>
+        )}
 
-      <DevocionalConcluir
-        devocionalSlug={slug}
-        jaConcluido={jaConcluido}
-        anotacaoSalva={anotacaoSalva}
-      />
+        <DevocionalConcluir
+          devocionalSlug={slug}
+          jaConcluido={jaConcluido}
+          anotacaoSalva={anotacaoSalva}
+        />
+      </AuthGate>
     </div>
   );
 }

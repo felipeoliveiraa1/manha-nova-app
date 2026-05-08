@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth/user";
 import { createClientOrNull } from "@/lib/supabase/server";
 import { listConquistas, listUserConquistas } from "@/lib/repo/conquistas";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { logoutAction } from "@/lib/auth/actions";
 import {
   Flame,
@@ -18,6 +18,9 @@ import {
   BookOpen,
   Crown,
   Lock,
+  UserCircle,
+  UserPlus,
+  LogIn,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -42,12 +45,49 @@ async function getSubscription(userId: string, email: string | null) {
 
 export default async function PerfilPage() {
   const user = await getCurrentUser();
+
+  // Guest — mostra UI de cadastro/login ao invés do perfil normal
+  if (user.isPreview) {
+    return (
+      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-6 px-6 py-10 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <UserCircle className="h-8 w-8" />
+        </div>
+        <header>
+          <h1 className="font-serif text-3xl font-semibold">Seu perfil</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Crie sua conta grátis pra ter perfil, streak, conquistas e
+            acompanhar seu progresso espiritual.
+          </p>
+        </header>
+        <div className="flex w-full flex-col gap-2">
+          <Link
+            href="/cadastro"
+            className={buttonVariants({ size: "lg", className: "w-full" })}
+          >
+            <UserPlus className="h-4 w-4" />
+            Criar conta grátis
+          </Link>
+          <Link
+            href="/login"
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className: "w-full",
+            })}
+          >
+            <LogIn className="h-4 w-4" />
+            Já tenho conta
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const [sub, todasConquistas, userConquistas] = await Promise.all([
-    user.isPreview ? Promise.resolve(null) : getSubscription(user.id, user.email),
+    getSubscription(user.id, user.email),
     listConquistas(),
-    user.isPreview
-      ? Promise.resolve(new Set<string>(["streak-7", "primeiro-devocional"]))
-      : listUserConquistas(user.id),
+    listUserConquistas(user.id),
   ]);
 
   const firstLetter = (user.profile.nome ?? "U").trim().charAt(0).toUpperCase();
