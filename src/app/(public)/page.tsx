@@ -424,19 +424,19 @@ const DIFERENCIAIS = [
 
 const STEPS = [
   {
-    title: "Assine",
-    desc: "Checkout seguro no Greenn. Pix, cartão ou boleto. Leva 1 minuto.",
-    icon: CreditCard,
-  },
-  {
-    title: "Receba na hora",
-    desc: "Email com seu acesso (email + senha) chega em segundos. Sem esperar aprovação.",
+    title: "Crie sua conta",
+    desc: "Email e senha. Sem cartão, sem cadastro complicado. Leva 30 segundos.",
     icon: Mail,
   },
   {
     title: "Abra todo dia",
     desc: "5 minutos bastam. O app te lembra. A rotina faz o resto.",
     icon: Sunrise,
+  },
+  {
+    title: "Cresça no seu ritmo",
+    desc: "Bíblia, devocionais e diário grátis. Quando quiser mais, é só dar upgrade dentro do app.",
+    icon: CreditCard,
   },
 ];
 
