@@ -6,19 +6,65 @@ import { createClientOrNull } from "@/lib/supabase/server";
  */
 export const FREE_LIMITS = {
   ia_message: { count: 5, periodDays: 1, label: "5 mensagens por dia" },
-  devocional_video: {
+  devocional: {
     count: 2,
     periodDays: 7,
-    label: "2 vídeos por semana",
+    label: "2 devocionais por semana",
   },
 } as const;
 
 export const PREMIUM_LIMITS = {
   ia_message: { count: 30, periodDays: 1, label: "30 mensagens por dia" },
-  devocional_video: { count: 999, periodDays: 7, label: "Ilimitado" },
+  devocional: { count: 999, periodDays: 7, label: "Ilimitado" },
 } as const;
 
 export type Feature = keyof typeof FREE_LIMITS;
+
+/**
+ * Verifica se o user JA acessou um devocional especifico no periodo.
+ * Se sim, ele pode reabrir sem consumir nova quota.
+ */
+export async function hasViewedDevocional(
+  userId: string,
+  slug: string,
+): Promise<boolean> {
+  const { createClientOrNull: makeClient } = await import("@/lib/supabase/server");
+  const supabase = await makeClient();
+  if (!supabase) return false;
+  const since = new Date(Date.now() - FREE_LIMITS.devocional.periodDays * 86400_000);
+  const { count } = await supabase
+    .from("user_feature_uses")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("feature", "devocional")
+    .eq("meta->>slug", slug)
+    .gte("used_at", since.toISOString());
+  return (count ?? 0) > 0;
+}
+
+/**
+ * Conta quantos devocionais DISTINTOS o user ja abriu no periodo.
+ */
+export async function countDistinctDevocionais(
+  userId: string,
+): Promise<number> {
+  const { createClientOrNull: makeClient } = await import("@/lib/supabase/server");
+  const supabase = await makeClient();
+  if (!supabase) return 0;
+  const since = new Date(Date.now() - FREE_LIMITS.devocional.periodDays * 86400_000);
+  const { data } = await supabase
+    .from("user_feature_uses")
+    .select("meta")
+    .eq("user_id", userId)
+    .eq("feature", "devocional")
+    .gte("used_at", since.toISOString());
+  const slugs = new Set(
+    (data as { meta: { slug?: string } | null }[] | null)
+      ?.map((r) => r.meta?.slug)
+      .filter((s): s is string => !!s) ?? [],
+  );
+  return slugs.size;
+}
 
 /**
  * Conta quantas vezes o user usou a feature no periodo. Usa user_feature_uses.
