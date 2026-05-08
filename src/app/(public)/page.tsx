@@ -16,10 +16,7 @@ import {
 } from "lucide-react";
 import { FadeIn } from "@/components/landing/fade-in";
 import { PhoneMockup } from "@/components/landing/phone-mockup";
-import { StickyCta } from "@/components/landing/sticky-cta";
 import { FaqAccordion } from "@/components/landing/faq-accordion";
-
-const CHECKOUT_URL = process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "#";
 
 export default function LandingPage() {
   return (
@@ -31,8 +28,6 @@ export default function LandingPage() {
           y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "wivde2v00o");`}
       </Script>
-      <StickyCta href={CHECKOUT_URL} />
-
       {/* ===== Header fixo ===== */}
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -42,24 +37,17 @@ export default function LandingPage() {
           </span>
           <nav className="flex items-center gap-3">
             <Link
-              href="/home"
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
-            >
-              Entrar no app
-            </Link>
-            <Link
               href="/login"
               className="hidden text-sm text-muted-foreground transition hover:text-foreground sm:inline"
             >
               Já tenho conta
             </Link>
-            <a
-              href={CHECKOUT_URL}
+            <Link
+              href="/cadastro"
               className={buttonVariants({ size: "sm" })}
             >
-              <span className="hidden sm:inline">Assinar R$29,90</span>
-              <span className="sm:hidden">Assinar</span>
-            </a>
+              Criar conta grátis
+            </Link>
           </nav>
         </div>
       </header>
@@ -91,29 +79,29 @@ export default function LandingPage() {
               devocional, oração, missão do dia e a Bíblia completa.
             </p>
             <div className="mt-8 flex flex-col items-start gap-3">
-              <a
-                href={CHECKOUT_URL}
+              <Link
+                href="/cadastro"
                 className={buttonVariants({ size: "lg" })}
               >
-                Assinar Premium por R$29,90/mês
+                Criar minha conta grátis
                 <ArrowRight className="h-4 w-4" />
-              </a>
+              </Link>
               <div className="flex flex-wrap items-center gap-2">
                 <Link
-                  href="/cadastro"
+                  href="/home"
                   className={buttonVariants({ variant: "outline", size: "sm" })}
                 >
-                  Criar conta grátis
+                  Entrar como convidado
                 </Link>
                 <Link
                   href="/biblia"
                   className={buttonVariants({ variant: "ghost", size: "sm" })}
                 >
-                  Ou só ler a Bíblia →
+                  Só ler a Bíblia →
                 </Link>
               </div>
               <p className="text-xs text-muted-foreground">
-                7 dias de garantia · Cancele quando quiser · Pagamento seguro
+                Sem cartão · Use grátis no seu ritmo
               </p>
             </div>
           </FadeIn>
@@ -292,92 +280,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== Preço ===== */}
-      <section id="preco" className="border-t border-border/50">
-        <div className="mx-auto max-w-4xl px-6 py-20 sm:py-24">
-          <FadeIn>
-            <div className="mb-10 text-center">
-              <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-primary">
-                Investimento
-              </p>
-              <h2 className="font-serif text-3xl font-semibold sm:text-4xl">
-                Tudo por menos de{" "}
-                <span className="text-primary">R$1 por dia</span>.
-              </h2>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.1}>
-            <div className="relative mx-auto max-w-xl overflow-hidden rounded-2xl border border-primary/40 bg-linear-to-br from-card to-primary/5 p-8 shadow-xl shadow-primary/5 sm:p-10">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/20 blur-3xl"
-              />
-              <div className="relative">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm text-muted-foreground">R$</span>
-                  <span className="font-serif text-6xl font-semibold tracking-tight text-primary">
-                    29
-                  </span>
-                  <span className="font-serif text-3xl font-semibold text-primary">
-                    ,90
-                  </span>
-                  <span className="ml-1 text-sm text-muted-foreground">
-                    /mês
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Acesso completo, sem limite.
-                </p>
-
-                <ul className="mt-6 grid gap-2.5">
-                  {INCLUSO.map((item) => (
-                    <li key={item} className="flex items-center gap-3 text-sm">
-                      <Check className="h-4 w-4 shrink-0 text-primary" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                <a
-                  href={CHECKOUT_URL}
-                  className={buttonVariants({
-                    size: "lg",
-                    className: "mt-8 w-full",
-                  })}
-                >
-                  Começar minha rotina
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  Cancele quando quiser · Pagamento seguro via Greenn
-                </p>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ===== Garantia ===== */}
-      <section className="border-t border-border/50 bg-card/30">
-        <div className="mx-auto max-w-3xl px-6 py-20 text-center sm:py-24">
-          <FadeIn>
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/40 bg-primary/10 text-primary">
-              <Shield className="h-7 w-7" />
-            </div>
-            <h2 className="font-serif text-3xl font-semibold sm:text-4xl">
-              7 dias de garantia incondicional.
-            </h2>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Se nesses 7 dias você sentir que o Manhã Nova não é pra você,
-              devolvemos{" "}
-              <strong className="text-foreground">100% do valor</strong>. Sem
-              precisar justificar, sem ligação, sem pergunta.
-            </p>
-          </FadeIn>
-        </div>
-      </section>
-
       {/* ===== FAQ ===== */}
       <section className="border-t border-border/50">
         <div className="mx-auto max-w-3xl px-6 py-20 sm:py-24">
@@ -410,15 +312,15 @@ export default function LandingPage() {
               <span className="text-primary">Com Ele.</span>
             </h2>
             <div className="mt-10 flex flex-col items-center gap-3">
-              <a
-                href={CHECKOUT_URL}
+              <Link
+                href="/cadastro"
                 className={buttonVariants({ size: "lg" })}
               >
-                Assinar por R$29,90/mês
+                Criar minha conta grátis
                 <ArrowRight className="h-4 w-4" />
-              </a>
+              </Link>
               <p className="text-xs text-muted-foreground">
-                Cancele quando quiser · 7 dias de garantia
+                Sem cartão · Use grátis no seu ritmo
               </p>
             </div>
           </FadeIn>
@@ -433,15 +335,15 @@ export default function LandingPage() {
             Manhã Nova
           </span>
           <nav className="flex items-center gap-5">
+            <Link href="/cadastro" className="hover:text-foreground">
+              Criar conta
+            </Link>
             <Link href="/login" className="hover:text-foreground">
               Entrar
             </Link>
             <Link href="/esqueci-senha" className="hover:text-foreground">
               Esqueci a senha
             </Link>
-            <a href={CHECKOUT_URL} className="hover:text-foreground">
-              Assinar
-            </a>
           </nav>
           <p>© {new Date().getFullYear()} Manhã Nova</p>
         </div>
@@ -549,26 +451,22 @@ const FAQ = [
   },
   {
     q: "Preciso baixar na App Store ou Play Store?",
-    a: "Não. Acesso direto pelo link que chega por email. Sem esperar aprovação de loja, sem ocupar espaço do celular.",
-  },
-  {
-    q: "Posso cancelar quando quiser?",
-    a: "Sim. Direto no painel do Greenn, um clique, sem burocracia e sem ligação.",
-  },
-  {
-    q: "Se eu cancelar, perco meu diário e notas?",
-    a: "Não. Tudo fica salvo no nosso banco. Se reassinar depois, volta exatamente como estava.",
+    a: "Não. Acesso direto pelo link manhã-nova-app.vercel.app. Sem esperar aprovação de loja, sem ocupar espaço do celular.",
   },
   {
     q: "Tem versão gratuita?",
-    a: "Não. Todo o conteúdo, a IA e a Bíblia completa estão inclusos por R$29,90/mês. Sem anúncios, sem upsell, sem cascata de planos.",
+    a: "Sim. Você pode criar sua conta grátis e usar Bíblia, devocionais (limite semanal), missões, oração, diário e IA. Quando quiser conhecer o plano completo com Yan, é só dar upgrade dentro do app.",
   },
   {
-    q: "Como recebo meu acesso depois da compra?",
-    a: "Na hora. Você recebe um email com seu email de login e uma senha gerada em segundos. 1 clique no botão do email e você está dentro.",
+    q: "Como faço pra começar?",
+    a: "Clica em 'Criar conta grátis', preenche email e senha e tá dentro. Em segundos.",
+  },
+  {
+    q: "Se eu apagar minha conta, perco meu diário e notas?",
+    a: "Sim. Diário, anotações e progresso são vinculados à sua conta. Tudo fica salvo enquanto você mantiver acesso.",
   },
   {
     q: "E se eu não conseguir logar?",
-    a: "Use 'Esqueci minha senha' na tela de login. Chega um novo email com link em instantes. Se ainda assim travar, responde esse email que a gente resolve.",
+    a: "Use 'Esqueci minha senha' na tela de login. Chega um novo email com link em instantes.",
   },
 ];

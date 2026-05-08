@@ -4,13 +4,44 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { signupAction } from "@/lib/auth/actions";
+import { Mail } from "lucide-react";
 
 export default async function CadastroPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; confirme?: string }>;
 }) {
   const params = await searchParams;
+
+  // Estado pos-signup: aguardando confirmacao de email
+  if (params.confirme) {
+    return (
+      <div>
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <Mail className="h-7 w-7" />
+        </div>
+        <h1 className="font-serif text-2xl font-semibold">
+          Confirme seu email
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Enviamos um link de confirmação pra{" "}
+          <strong className="text-foreground">{params.confirme}</strong>.
+          Clique no link pra ativar sua conta e entrar no app.
+        </p>
+        <p className="mt-4 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
+          Não chegou? Olha a caixa de spam. Se ainda assim não vier em alguns
+          minutos, tenta cadastrar de novo.
+        </p>
+        <Link
+          href="/login"
+          className="mt-6 inline-block text-sm text-primary hover:underline"
+        >
+          ← Voltar pra tela de login
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 className="font-serif text-2xl font-semibold">Criar conta grátis</h1>

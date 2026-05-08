@@ -35,7 +35,7 @@ export async function signupAction(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -49,6 +49,13 @@ export async function signupAction(formData: FormData) {
         ? "Esse email já tem conta. Faça login ou recupere a senha."
         : error.message;
     redirect(`/cadastro?error=${encodeURIComponent(msg)}`);
+  }
+
+  // Se Supabase Auth exige confirmacao de email, signUp NAO cria sessao.
+  // Nesse caso redirecionar pra /home daria modo convidado (bug). Mostra
+  // mensagem clara em vez disso.
+  if (!data.session) {
+    redirect(`/cadastro?confirme=${encodeURIComponent(email)}`);
   }
 
   redirect("/home");
