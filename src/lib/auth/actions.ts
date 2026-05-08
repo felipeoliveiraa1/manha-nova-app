@@ -51,14 +51,24 @@ export async function signupAction(formData: FormData) {
     redirect(`/cadastro?error=${encodeURIComponent(msg)}`);
   }
 
-  // Se Supabase Auth exige confirmacao de email, signUp NAO cria sessao.
-  // Nesse caso redirecionar pra /home daria modo convidado (bug). Mostra
-  // mensagem clara em vez disso.
-  if (!data.session) {
-    redirect(`/cadastro?confirme=${encodeURIComponent(email)}`);
+  // Caso 1: signUp ja criou sessao (Supabase com Confirm email OFF)
+  if (data.session) {
+    redirect("/home");
   }
 
-  redirect("/home");
+  // Caso 2: signUp nao retornou session — pode ser que o Confirm email
+  // esta OFF mas o supabase-js nao retornou session por algum motivo.
+  // Tenta signInWithPassword: se passar, ja loga; se falhar, eh confirm ON.
+  const { error: signInErr } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (!signInErr) {
+    redirect("/home");
+  }
+
+  // Caso 3: signIn falhou tambem — Confirm email esta ON. Pede pra confirmar.
+  redirect(`/cadastro?confirme=${encodeURIComponent(email)}`);
 }
 
 export async function loginAction(formData: FormData) {
