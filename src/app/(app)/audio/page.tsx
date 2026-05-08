@@ -1,10 +1,8 @@
 import { Headphones } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { requireAuth } from "@/lib/auth/guards";
 import { PremiumGate } from "@/components/features/premium-gate";
 
 export default async function AudioPage() {
-  await requireAuth();
 
   return (
     <div className="px-4 pt-6 pb-8">

@@ -15,10 +15,8 @@ import { MissionConcluirButton } from "@/components/features/mission-concluir-bu
 import { ReflexaoForm } from "@/components/features/reflexao-form";
 import { IniciarDiaCta } from "@/components/features/iniciar-dia-cta";
 import { UpgradeBanner } from "@/components/features/upgrade-banner";
-import { requireAuth } from "@/lib/auth/guards";
 
 export default async function HomePage() {
-  await requireAuth();
   const user = await getCurrentUser();
   const [versiculo, devocional, missao, missoesHoje] = await Promise.all([
     Promise.resolve(versiculoDoDia()),

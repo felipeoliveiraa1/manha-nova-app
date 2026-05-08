@@ -45,22 +45,12 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/esqueci-senha") ||
     pathname.startsWith("/cadastro");
-  // /biblia, /explorar e /upgrade sao conteudo publico ou apenas requer login
-  // (gating fino por tier eh feito nas pages via requireAuth/requirePremium).
+  // App em modo guest: a maioria das rotas eh livre pra explorar sem login.
+  // So bloqueia rotas que so fazem sentido pra um user logado (perfil, config,
+  // admin, upgrade) ou que sao premium-restritas (audio, no futuro webinarios).
   const isProtected =
-    pathname.startsWith("/home") ||
-    pathname.startsWith("/devocionais") ||
-    pathname.startsWith("/missoes") ||
-    pathname.startsWith("/quiz") ||
-    pathname.startsWith("/trilhas") ||
-    pathname.startsWith("/audio") ||
-    pathname.startsWith("/ia") ||
-    pathname.startsWith("/diario") ||
-    pathname.startsWith("/oracao") ||
-    pathname.startsWith("/igrejas") ||
     pathname.startsWith("/perfil") ||
     pathname.startsWith("/configuracoes") ||
-    pathname.startsWith("/conquistas") ||
     pathname.startsWith("/upgrade") ||
     pathname.startsWith("/admin");
 

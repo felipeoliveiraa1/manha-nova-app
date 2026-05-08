@@ -4,10 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { QuizGame } from "@/components/features/quiz-game";
 import { Trophy } from "lucide-react";
-import { requireAuth } from "@/lib/auth/guards";
 
 export default async function QuizPage() {
-  await requireAuth();
   const [perguntas, ranking] = await Promise.all([
     listQuizPerguntas(5),
     getRankingSemanal(),

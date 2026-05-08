@@ -2,10 +2,8 @@ import Link from "next/link";
 import { listDevocionais, listSeries } from "@/lib/repo/devocionais";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, BookOpen } from "lucide-react";
-import { requireAuth } from "@/lib/auth/guards";
 
 export default async function DevocionaisPage() {
-  await requireAuth();
   const [devocionais, series] = await Promise.all([
     listDevocionais(),
     listSeries(),

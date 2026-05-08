@@ -1,8 +1,6 @@
 import { AiChat } from "@/components/features/ai-chat";
-import { requireAuth } from "@/lib/auth/guards";
 
 export default async function IaPage() {
-  await requireAuth();
   return (
     <div className="px-4 pt-6 pb-8">
       <header className="mb-4">

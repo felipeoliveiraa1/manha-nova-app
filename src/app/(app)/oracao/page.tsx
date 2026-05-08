@@ -3,10 +3,8 @@ import { listOracoes } from "@/lib/repo/oracoes";
 import { Card, CardContent } from "@/components/ui/card";
 import { OracaoForm } from "@/components/features/oracao-form";
 import { Sparkles } from "lucide-react";
-import { requireAuth } from "@/lib/auth/guards";
 
 export default async function OracaoPage() {
-  await requireAuth();
   const user = await getCurrentUser();
   const oracoes = await listOracoes(user.id);
 
