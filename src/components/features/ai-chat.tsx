@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Send, Sparkles, AlertCircle } from "lucide-react";
+import { Send, Sparkles, AlertCircle, Crown, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 type Msg = {
@@ -18,11 +18,15 @@ const SUGESTOES = [
   "O que fazer quando tudo parece pesado?",
 ];
 
+const CHECKOUT_URL =
+  process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "/upgrade";
+
 export function AiChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [conversaId, setConversaId] = useState<string | null>(null);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,6 +49,10 @@ export function AiChat() {
         body: JSON.stringify({ mensagem: content, conversaId }),
       });
       const data = await res.json();
+      if (res.status === 429 && data.needsUpgrade) {
+        setNeedsUpgrade(true);
+        return;
+      }
       if (!res.ok) {
         toast.error(data.error ?? "Falha ao conectar com a IA.");
         setMessages((m) => [
@@ -65,6 +73,56 @@ export function AiChat() {
     } finally {
       setPending(false);
     }
+  }
+
+  if (needsUpgrade) {
+    return (
+      <div className="flex flex-col gap-4">
+        {/* Mantem as mensagens anteriores visiveis */}
+        {messages.length > 0 && (
+          <div className="flex flex-col gap-3">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={
+                  m.role === "user"
+                    ? "ml-6 rounded-xl rounded-br-sm bg-primary/15 p-3 text-sm"
+                    : "mr-6 rounded-xl rounded-bl-sm border border-border bg-card p-3 text-sm leading-relaxed whitespace-pre-wrap"
+                }
+              >
+                {m.content}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="rounded-2xl border border-primary/30 bg-linear-to-br from-card to-primary/5 p-6 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <Lock className="h-6 w-6" />
+          </div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-primary">
+            Limite gratuito atingido
+          </p>
+          <h3 className="mt-2 font-serif text-xl font-semibold">
+            Você usou suas 5 mensagens de hoje
+          </h3>
+          <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
+            Faça upgrade pra Premium e tenha 30 mensagens por dia + acesso
+            completo aos devocionais em vídeo, estudos e webinários do Yan.
+          </p>
+          <a
+            href={CHECKOUT_URL}
+            className={`mt-5 inline-flex items-center gap-2 ${buttonVariants({ size: "default" })}`}
+          >
+            <Crown className="h-4 w-4" />
+            Assinar Premium · R$29,90/mês
+          </a>
+          <p className="mt-3 text-[11px] text-muted-foreground">
+            Limite renova amanhã. Cancele quando quiser.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

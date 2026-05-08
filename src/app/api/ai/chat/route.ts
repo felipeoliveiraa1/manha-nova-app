@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClientOrNull } from "@/lib/supabase/server";
 import { buscarVersiculosRelevantes } from "@/lib/repo/biblia";
+import { getUserTier } from "@/lib/auth/guards";
+import {
+  FREE_LIMITS,
+  PREMIUM_LIMITS,
+  countFeatureUses,
+  recordFeatureUse,
+} from "@/lib/auth/limits";
 
-const DAILY_LIMIT = 30;
 const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 
 const SYSTEM_PROMPT = `Você é um assistente pastoral cristão evangélico brasileiro que ajuda o usuário a viver uma rotina espiritual saudável.
@@ -64,19 +70,21 @@ export async function POST(req: Request) {
     }
     userId = user.id;
 
-    // Rate limit diário
-    const startDay = new Date();
-    startDay.setHours(0, 0, 0, 0);
-    const { count } = await supabase
-      .from("ai_mensagens")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("role", "user")
-      .gte("created_at", startDay.toISOString());
-    if ((count ?? 0) >= DAILY_LIMIT) {
+    // Rate limit diario por tier (free 10, premium 30)
+    const tier = await getUserTier();
+    const config =
+      tier === "premium" ? PREMIUM_LIMITS.ia_message : FREE_LIMITS.ia_message;
+    const used = await countFeatureUses(userId, "ia_message", config.periodDays);
+    if (used >= config.count) {
       return NextResponse.json(
         {
-          error: `Você atingiu o limite diário de ${DAILY_LIMIT} mensagens. Volte amanhã.`,
+          error:
+            tier === "premium"
+              ? `Você atingiu o limite de ${config.count} mensagens por dia. Volte amanhã.`
+              : `Você atingiu o limite gratuito de ${config.count} mensagens hoje.`,
+          needsUpgrade: tier === "free",
+          limit: config.count,
+          periodDays: config.periodDays,
         },
         { status: 429 },
       );
@@ -177,6 +185,9 @@ export async function POST(req: Request) {
         tokens: payload.usage?.total_tokens ?? null,
       },
     ]);
+
+    // Registra uso pra contagem de quota (FREE_LIMITS / PREMIUM_LIMITS)
+    await recordFeatureUse(userId, "ia_message");
   }
 
   return NextResponse.json({ resposta, conversaId });
